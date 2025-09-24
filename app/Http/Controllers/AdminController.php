@@ -48,7 +48,6 @@ class AdminController extends Controller
         if (!$selectedPeriods) {
             $document_period->period_value = null;
         } else {
-
             $document_period->period_value = json_encode($selectedPeriods);
         }
 
