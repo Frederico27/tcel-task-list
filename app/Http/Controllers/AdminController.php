@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Documents;
+use App\Models\PendingTask;
 use App\Models\TypePeriod;
 use Illuminate\Http\Request;
 
@@ -62,5 +63,35 @@ class AdminController extends Controller
         $document->delete();
 
         return redirect()->back()->with('success', 'Document deleted successfully.');
+    }
+
+    public function taskList()
+    {
+        $docs = PendingTask::all()->whereNotIn('status', ['waiting_document']);
+        return view('admin.taskList', compact('docs'));
+    }
+
+    public function approveDocument($id)
+    {
+        $task = PendingTask::findOrFail($id);
+        $task->status = 'approved';
+        $task->approved_by = 'Admin'; // You can replace this with the actual admin user name if authentication is implemented
+        $task->save();
+
+        return redirect()->back()->with('success', 'Document approved successfully.');
+    }
+
+    public function rejectDocument($id)
+    {
+        $task = PendingTask::findOrFail($id);
+        $task->status = 'rejected';
+        //remove the uploaded file
+        if ($task->upload && file_exists(public_path($task->upload))) {
+            unlink(public_path($task->upload));
+        }
+        $task->upload = '';
+        $task->save();
+
+        return redirect()->back()->with('success', 'Document rejected successfully.');
     }
 }

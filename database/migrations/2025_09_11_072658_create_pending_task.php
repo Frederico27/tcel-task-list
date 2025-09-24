@@ -17,11 +17,11 @@ return new class extends Migration
             $table->date('periode_date');
             $table->string('upload', 255);
             $table->enum('status', [
-                'null',
-                'waiting',
+                'waiting_document',
+                'waiting_approval',
                 'approved',
                 'rejected'
-            ])->default('null');
+            ])->default('waiting_document');
             $table->string('approved_by')->nullable();
             $table->timestamps();
 

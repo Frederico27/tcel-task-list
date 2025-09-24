@@ -14,9 +14,13 @@ class PendingTask extends Model
     public $incrementing = true;
     protected $fillable = [
         'id_documents',
-        'task_date',
         'upload',
         'periode_date',
         'status',
     ];
+
+    public function document()
+    {
+        return $this->belongsTo(Documents::class, 'id_documents', 'id_documents');
+    }
 }

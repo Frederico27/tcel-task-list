@@ -64,7 +64,7 @@ class GenerateTasks extends Command
 
                                 $creationDate = $occurrence->copy()->subDays($creatingTaskDays);
 
-                                if ($today->betweenIncluded($creationDate, $occurrence)) {
+                                if ($today->betweenIncluded($creationDate->startOfDay(), $occurrence->endOfDay())) {
                                     $this->createTaskIfNotExists($doc->id_documents, $occurrence);
                                     break; // sudah buat task untuk dateString ini
                                 }
@@ -131,7 +131,7 @@ class GenerateTasks extends Command
                 'id_documents' => $documentId,
                 'periode_date' => $dateString,
                 'upload' => '',
-                'status' => 'null'
+                'status' => 'waiting_document',
             ]);
 
             $this->info("Created pending_task for document {$documentId} date {$dateString}");

@@ -15,9 +15,11 @@
 
                 <!-- Topbar Application Name -->
                 <div class="d-none d-sm-inline-block ml-md-3 my-2 my-md-0">
-                    <h5 class="text-primary font-weight-bold m-0">
+                    <a href="{{ route('admin.index') }}">
+                        <h5 class="text-danger font-weight-bold m-0">
                         TASK LIST TCEL
                     </h5>
+                    </a>
                 </div>
 
 
@@ -204,8 +206,8 @@
                 <!-- DataTales Example -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">Data Task</h6>
-                        <button class="btn btn-primary" data-toggle="modal" data-target="#addTaskModal">
+                        <h6 class="m-0 font-weight-bold text-danger">Data Task</h6>
+                        <button class="btn btn-danger" data-toggle="modal" data-target="#addTaskModal">
                             <i class="fas fa-plus"></i> Add Task
                         </button>
                     </div>
