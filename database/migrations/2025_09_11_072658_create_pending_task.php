@@ -17,15 +17,16 @@ return new class extends Migration
             $table->date('periode_date');
             $table->string('upload', 255);
             $table->enum('status', [
+                'null',
                 'waiting',
                 'approved',
                 'rejected'
-            ])->default('waiting');
+            ])->default('null');
             $table->string('approved_by')->nullable();
             $table->timestamps();
 
             $table->foreign('id_documents')
-                ->references('id_documents')->on('type_documents')
+                ->references('id_documents')->on('documents')
                 ->onDelete('cascade')->onUpdate('cascade');
         });
     }

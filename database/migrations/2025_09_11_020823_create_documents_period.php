@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('documents_period', function (Blueprint $table) {
             $table->id('id_docu_period');
             $table->unsignedBigInteger('id_documents');
-            $table->enum('period_type', ['daily', 'weekly', 'yearly', 'date']);
-            $table->string('period_value');
+            $table->enum('period_type', ['daily', 'weekly', 'yearly']);
+            $table->json('period_value');
             $table->timestamps();
 
             $table->foreign('id_documents')
-                ->references('id_documents')->on('type_documents')
+                ->references('id_documents')->on('documents')
                 ->onDelete('cascade')->onUpdate('cascade');
         });
     }
