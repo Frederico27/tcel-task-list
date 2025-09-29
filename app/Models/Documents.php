@@ -24,6 +24,11 @@ class Documents extends Model
         return $this->hasMany(TypePeriod::class, 'id_documents', 'id_documents');
     }
 
+    public function pendingTask()
+    {
+        return $this->hasMany(PendingTask::class, 'id_documents', 'id_documents');
+    }
+
     // Return PIC as "Joao, Mario" in views
     public function getPicAttribute($value)
     {

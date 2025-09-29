@@ -11,6 +11,7 @@ Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->na
 Route::get('/admin/task', [App\Http\Controllers\AdminController::class, 'taskList'])->name('admin.taskList');
 Route::post('/admin/approve/{id}', [App\Http\Controllers\AdminController::class, 'approveDocument'])->name('admin.approveDocument');
 Route::post('/admin/reject/{id}', [App\Http\Controllers\AdminController::class, 'rejectDocument'])->name('admin.rejectDocument');
+Route::post('/admin/approve-bulk', [App\Http\Controllers\AdminController::class, 'bulkApprove'])->name('admin.bulkApprove');
 Route::post('/admin', [App\Http\Controllers\AdminController::class, 'addDocument'])->name('admin.addDocument');
 Route::delete('/admin/{id}', [App\Http\Controllers\AdminController::class, 'deleteDocument'])->name('admin.deleteDocument');
 

@@ -38,7 +38,7 @@
 
     @yield('content')
 
-     <!-- Scripts -->
+    <!-- Scripts -->
     <!-- load jQuery first -->
     <script src="{{ asset('sb-admin/vendor/jquery/jquery.min.js') }}"></script>
 

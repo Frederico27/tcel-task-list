@@ -6,6 +6,7 @@ use App\Models\Documents;
 use App\Models\PendingTask;
 use App\Models\TypePeriod;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -67,7 +68,12 @@ class AdminController extends Controller
 
     public function taskList()
     {
-        $docs = PendingTask::all()->whereNotIn('status', ['waiting_document']);
+        $docs = Documents::with('pendingTask')
+            ->whereHas('pendingTask', function ($query) {
+                $query->where('status', '!=', 'waiting_document');
+            })
+            ->get();
+
         return view('admin.taskList', compact('docs'));
     }
 
@@ -75,10 +81,41 @@ class AdminController extends Controller
     {
         $task = PendingTask::findOrFail($id);
         $task->status = 'approved';
-        $task->approved_by = 'Admin'; // You can replace this with the actual admin user name if authentication is implemented
+        $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin'; // use auth user name if available
         $task->save();
 
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Document approved successfully.', 'approved_by' => $task->approved_by]);
+        }
+
         return redirect()->back()->with('success', 'Document approved successfully.');
+    }
+
+    /**
+     * Approve multiple pending tasks passed as an array of ids in the request.
+     */
+    public function bulkApprove(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Invalid data submitted.'], 400);
+            }
+            return redirect()->back()->with('error', 'Invalid data submitted.');
+        }
+
+        $tasks = PendingTask::whereIn('id_pending_task', $ids)->get();
+        foreach ($tasks as $task) {
+            $task->status = 'approved';
+            $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin';
+            $task->save();
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => count($tasks) . ' document(s) approved successfully.', 'approved_by' => Auth::check() ? Auth::user()->name : 'Admin']);
+        }
+
+        return redirect()->back()->with('success', count($tasks) . ' document(s) approved successfully.');
     }
 
     public function rejectDocument($id)
