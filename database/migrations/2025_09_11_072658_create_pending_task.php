@@ -22,6 +22,7 @@ return new class extends Migration
                 'approved',
                 'rejected'
             ])->default('waiting_document');
+            $table->string('rejected_reason')->nullable();
             $table->string('approved_by')->nullable();
             $table->timestamps();
 

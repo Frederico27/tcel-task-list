@@ -244,8 +244,13 @@
                                             </td>
 
 
-                                            <td>
-                                                {{ $doc->status }}
+                                            <td class="task-status @if($doc->status == 'rejected') clickable-rejection @endif"
+                                                data-rejection="{{ $doc->rejected_reason ?? '' }}">
+                                                @if($doc->status == 'rejected')
+                                                    <a href="#" class="show-rejection" data-rejection="{{ $doc->rejected_reason ?? '' }}">rejected</a>
+                                                @else
+                                                    {{ $doc->status }}
+                                                @endif
                                             </td>
                                             <td>{{ $doc->approved_by ?? '-' }}</td>
                                             @if ($doc->status == 'waiting_document')
@@ -373,6 +378,45 @@
                     // Show modal
                     $('#uploadModal').modal('show');
                 });
+            });
+        });
+    </script>
+@endpush
+
+@push('scripts')
+    <!-- View-only Rejection Reason Modal for users -->
+    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rejection Reason</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="viewRejectionText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const viewModalEl = document.getElementById('viewRejectionModal');
+            if (!viewModalEl) return;
+            const $viewModal = window.jQuery ? window.jQuery(viewModalEl) : null;
+            const viewText = document.getElementById('viewRejectionText');
+
+            document.addEventListener('click', function (e) {
+                const a = e.target.closest && e.target.closest('.show-rejection');
+                if (!a) return;
+                e.preventDefault();
+                const reason = a.getAttribute('data-rejection') || '';
+                if (viewText) viewText.textContent = reason || 'No reason provided.';
+                if ($viewModal) $viewModal.modal('show');
             });
         });
     </script>

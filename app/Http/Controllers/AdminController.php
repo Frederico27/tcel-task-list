@@ -58,6 +58,38 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Document added successfully.');
     }
 
+    public function updateDocument(Request $request, $id)
+    {
+        $request->validate([
+            'type_document' => 'required|string|max:255',
+            'pic' => 'required|array',
+            'approval' => 'required|array',
+            'type_periods' => 'required|string',
+            'periods' => 'sometimes|array',
+            'creating_task' => 'required|string|max:255',
+        ]);
+
+        $document = Documents::findOrFail($id);
+        $document->type_document = $request->input('type_document');
+        $document->pic = $request->input('pic');
+        $document->approval = $request->input('approval');
+        $document->creating_task = $request->input('creating_task');
+        $document->save();
+
+        // Update or create TypePeriod entry
+        $typePeriod = TypePeriod::firstOrNew(['id_documents' => $document->id_documents]);
+        $typePeriod->period_type = $request->input('type_periods');
+        $selected = $request->input('periods');
+        $typePeriod->period_value = $selected ? $selected : null;
+        $typePeriod->save();
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Document updated', 'document' => $document]);
+        }
+
+        return redirect()->back()->with('success', 'Document updated successfully.');
+    }
+
     public function deleteDocument($id)
     {
         $document = Documents::findOrFail($id);
@@ -68,11 +100,14 @@ class AdminController extends Controller
 
     public function taskList()
     {
-        $docs = Documents::with('pendingTask')
+        $docs = Documents::with(['pendingTask' => function ($query) {
+            $query->where('status', '!=', 'waiting_document');
+        }])
             ->whereHas('pendingTask', function ($query) {
                 $query->where('status', '!=', 'waiting_document');
             })
             ->get();
+
 
         return view('admin.taskList', compact('docs'));
     }
@@ -118,16 +153,34 @@ class AdminController extends Controller
         return redirect()->back()->with('success', count($tasks) . ' document(s) approved successfully.');
     }
 
-    public function rejectDocument($id)
+    public function rejectDocument(Request $request, $id)
     {
         $task = PendingTask::findOrFail($id);
         $task->status = 'rejected';
-        //remove the uploaded file
+
+        // Save rejection reason if provided
+        $reason = $request->input('rejection_reason');
+        if ($reason) {
+            $task->rejected_reason = $reason;
+        }
+
+        // remove the uploaded file
         if ($task->upload && file_exists(public_path($task->upload))) {
-            unlink(public_path($task->upload));
+            @unlink(public_path($task->upload));
         }
         $task->upload = '';
+        // Optionally record who performed the rejection
+        $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin';
         $task->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Document rejected successfully.',
+                'rejected_by' => $task->approved_by,
+                'rejection_reason' => $task->rejected_reason,
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Document rejected successfully.');
     }

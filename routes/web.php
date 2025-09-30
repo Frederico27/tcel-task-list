@@ -13,6 +13,7 @@ Route::post('/admin/approve/{id}', [App\Http\Controllers\AdminController::class,
 Route::post('/admin/reject/{id}', [App\Http\Controllers\AdminController::class, 'rejectDocument'])->name('admin.rejectDocument');
 Route::post('/admin/approve-bulk', [App\Http\Controllers\AdminController::class, 'bulkApprove'])->name('admin.bulkApprove');
 Route::post('/admin', [App\Http\Controllers\AdminController::class, 'addDocument'])->name('admin.addDocument');
+Route::put('/admin/{id}', [App\Http\Controllers\AdminController::class, 'updateDocument'])->name('admin.updateDocument');
 Route::delete('/admin/{id}', [App\Http\Controllers\AdminController::class, 'deleteDocument'])->name('admin.deleteDocument');
 
 //Added routes for user

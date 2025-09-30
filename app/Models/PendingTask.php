@@ -17,6 +17,7 @@ class PendingTask extends Model
         'upload',
         'periode_date',
         'status',
+        'rejected_reason',
     ];
 
     public function document()

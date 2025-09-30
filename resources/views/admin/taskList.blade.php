@@ -211,7 +211,8 @@
                             style="display:inline;">
                             @csrf
                             <div id="bulk-inputs"></div>
-                            <label class="ml-2 mr-2 align-middle"> <input type="checkbox" id="global-select-all" /> Select all visible</label>
+                            <label class="ml-2 mr-2 align-middle"> <input type="checkbox" id="global-select-all" />
+                                Select all visible</label>
                             <button id="bulk-approve-button" type="submit" class="btn btn-sm btn-primary mb-3"
                                 disabled>Approve Selected</button>
                         </form>
@@ -235,12 +236,13 @@
                                             <td>{{ $doc->pic }}</td>
                                             <td>{{ $doc->approval }}</td>
                                             <td>{{ $doc->creating_task }}</td>
-                                            <td>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-secondary toggle-child float-right ml-2"
-                                                    data-child="#child-row-{{ $loop->index }}" aria-expanded="false">+
+                                            <td class="text-center align-middle">
+                                                <button type="button" class="btn btn-sm btn-info toggle-child"
+                                                    data-child="#child-row-{{ $loop->index }}" aria-expanded="false">
+                                                    Details (+)
                                                 </button>
                                             </td>
+
 
                                         </tr>
 
@@ -256,8 +258,9 @@
                                                         <thead>
                                                             <tr>
                                                                 <th class="text-center" style="width:40px;">
-                                                                    @if($doc->pendingTask->contains('status', 'waiting_approval'))
-                                                                        <input type="checkbox" class="select-all-child" title="Select all in this document" />
+                                                                    @if ($doc->pendingTask->contains('status', 'waiting_approval'))
+                                                                        <input type="checkbox" class="select-all-child"
+                                                                            title="Select all in this document" />
                                                                     @endif
                                                                 </th>
                                                                 <th>Name Document</th>
@@ -272,8 +275,10 @@
                                                             @foreach ($doc->pendingTask as $task)
                                                                 <tr data-task-id="{{ $task->id_pending_task }}">
                                                                     <td class="text-center">
-                                                                        @if($task->status == 'waiting_approval')
-                                                                            <input type="checkbox" class="task-checkbox" value="{{ $task->id_pending_task }}" data-doc-id="{{ $doc->id_documents }}" />
+                                                                        @if ($task->status == 'waiting_approval')
+                                                                            <input type="checkbox" class="task-checkbox"
+                                                                                value="{{ $task->id_pending_task }}"
+                                                                                data-doc-id="{{ $doc->id_documents }}" />
                                                                         @endif
                                                                     </td>
                                                                     <td>{{ $doc->type_document }}</td>
@@ -306,36 +311,25 @@
                                                                     </td>
 
 
-                                                                    <td class="task-status">
-                                                                        {{ $task->status }}
+                                                                    <td class="task-status @if($task->status == 'rejected') clickable-rejection @endif"
+                                                                        data-rejection="{{ $task->rejected_reason ?? '' }}">
+                                                                        @if($task->status == 'rejected')
+                                                                            <a href="#" class="show-rejection" data-rejection="{{ $task->rejected_reason ?? '' }}">rejected</a>
+                                                                        @else
+                                                                            {{ $task->status }}
+                                                                        @endif
                                                                     </td>
-                                                                    <td class="text-center task-approved-by">{{ $task->approved_by ?? '-' }}</td>
+                                                                    <td class="text-center task-approved-by">
+                                                                        {{ $task->approved_by ?? '-' }}</td>
                                                                     @if ($task->status == 'waiting_approval')
                                                                         <td class="text-center position-relative">
-                                                                            {{-- Approve Form --}}
-                                                                            <form
-                                                                                action="{{ route('admin.approveDocument', $task->id_pending_task) }}"
-                                                                                method="POST" style="display:inline;">
-                                                                                @csrf
-                                                                                <button type="submit"
-                                                                                    class="btn btn-sm btn-success mb-1 single-approve-btn"
-                                                                                    data-task-id="{{ $task->id_pending_task }}"
-                                                                                    onclick="return confirm('Are you sure you want to approve this document?')">
-                                                                                    Approve
-                                                                                </button>
-                                                                            </form>
-
-                                                                            {{-- Reject Form --}}
-                                                                            <form
-                                                                                action="{{ route('admin.rejectDocument', $task->id_pending_task) }}"
-                                                                                method="POST" style="display:inline;">
-                                                                                @csrf
-                                                                                <button type="submit"
-                                                                                    class="btn btn-sm btn-danger mb-1"
-                                                                                    onclick="return confirm('Are you sure you want to reject this document?')">
-                                                                                    Reject
-                                                                                </button>
-                                                                            </form>
+                                                                            {{-- Reject button - opens modal to input rejection reason --}}
+                                                                            <button type="button"
+                                                                                class="btn btn-sm btn-danger mb-1 reject-btn"
+                                                                                data-action="{{ route('admin.rejectDocument', $task->id_pending_task) }}"
+                                                                                data-task-id="{{ $task->id_pending_task }}">
+                                                                                Reject
+                                                                            </button>
                                                                         </td>
                                                                     @else
                                                                         <td class="text-center">
@@ -381,175 +375,60 @@
         <!-- End of Footer -->
 
     </div>
-    <!-- End of Content Wrapper -->
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.toggle-child').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var selector = btn.getAttribute('data-child');
-                    var child = document.querySelector(selector);
-                    if (!child) return;
-                    var isHidden = child.style.display === 'none' || getComputedStyle(child)
-                        .display === 'none';
-                    if (isHidden) {
-                        child.style.display = '';
-                        btn.textContent = '-';
-                        btn.setAttribute('aria-expanded', 'true');
-                    } else {
-                        child.style.display = 'none';
-                        btn.textContent = '+';
-                        btn.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            });
-        });
-    </script>
-
-    <script>
-        // Enhanced bulk selection and AJAX submit
-        document.addEventListener('DOMContentLoaded', function() {
-            const bulkButton = document.getElementById('bulk-approve-button');
-            const bulkInputs = document.getElementById('bulk-inputs');
-            const bulkForm = document.getElementById('bulk-approve-form');
-            const globalSelectAll = document.getElementById('global-select-all');
-
-            function getCheckedIds() {
-                return Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => cb.value);
-            }
-
-            function updateBulkInputs() {
-                bulkInputs.innerHTML = '';
-                const checked = getCheckedIds();
-                if (checked.length > 0) {
-                    bulkButton.disabled = false;
-                    checked.forEach(id => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'ids[]';
-                        input.value = id;
-                        bulkInputs.appendChild(input);
-                    });
-                } else {
-                    bulkButton.disabled = true;
-                }
-            }
-
-            // Global select all visible (only toggles currently rendered checkboxes)
-            if (globalSelectAll) {
-                globalSelectAll.addEventListener('change', function() {
-                    const all = document.querySelectorAll('.task-checkbox');
-                    all.forEach(cb => cb.checked = globalSelectAll.checked);
-                    // also toggle per-document headers
-                    document.querySelectorAll('.select-all-child').forEach(h => h.checked = globalSelectAll.checked);
-                    updateBulkInputs();
-                });
-            }
-
-            // per-document select-all
-            document.querySelectorAll('.select-all-child').forEach(function(selectAll) {
-                selectAll.addEventListener('change', function() {
-                    const header = selectAll.closest('thead');
-                    if (!header) return;
-                    const tbody = header.parentElement.querySelector('tbody');
-                    if (!tbody) return;
-                    const checkboxes = tbody.querySelectorAll('.task-checkbox');
-                    checkboxes.forEach(cb => cb.checked = selectAll.checked);
-                    updateBulkInputs();
-                });
-            });
-
-            // individual checkboxes
-            document.addEventListener('change', function(e) {
-                if (e.target && e.target.classList.contains('task-checkbox')) {
-                    updateBulkInputs();
-                }
-            });
-
-            // AJAX submit for bulk form (progressive enhancement)
-            bulkForm.addEventListener('submit', function(ev) {
-                // If JS-enabled, prevent default and send AJAX request
-                ev.preventDefault();
-                const ids = getCheckedIds();
-                if (!ids.length) return;
-
-                if (!confirm('Approve selected documents?')) return;
-
-                // Prepare FormData
-                const formData = new FormData();
-                ids.forEach(id => formData.append('ids[]', id));
-                // CSRF token
-                const token = document.querySelector('input[name="_token"]').value;
-
-                fetch(bulkForm.action, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-                    body: formData,
-                }).then(r => r.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update UI for each approved task
-                            ids.forEach(id => {
-                                const row = document.querySelector('tr[data-task-id="' + id + '"]');
-                                if (!row) return;
-                                const statusCell = row.querySelector('.task-status');
-                                const approvedByCell = row.querySelector('.task-approved-by');
-                                if (statusCell) statusCell.textContent = 'approved';
-                                if (approvedByCell) approvedByCell.textContent = data.approved_by || 'Admin';
-                                // remove action buttons
-                                const actionCell = row.querySelector('td.position-relative');
-                                if (actionCell) actionCell.innerHTML = '<p class="text-muted d-inline-block mr-2">No actions available</p>';
-                                // uncheck the checkbox
-                                const cb = row.querySelector('.task-checkbox');
-                                if (cb) cb.checked = false;
-                            });
-                            updateBulkInputs();
-                            alert(data.message || (ids.length + ' item(s) approved'));
-                        } else {
-                            alert(data.message || 'Failed to approve items');
-                        }
-                    }).catch(err => {
-                        console.error(err);
-                        alert('An error occurred while approving items');
-                    });
-            });
-
-            // Single approve button enhancement: intercept and update UI without full reload
-            document.addEventListener('click', function(e) {
-                if (e.target && e.target.classList.contains('single-approve-btn')) {
-                    // allow default form submission to proceed if user cancels confirm
-                    // but enhance with fetch if confirmed
-                    e.preventDefault();
-                    const btn = e.target;
-                    const taskId = btn.getAttribute('data-task-id');
-                    if (!confirm('Are you sure you want to approve this document?')) return;
-                    const action = btn.closest('form').action;
-                    const token = document.querySelector('input[name="_token"]').value;
-                    const fd = new FormData();
-                    // empty payload; route expects only CSRF
-                    fetch(action, { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }, body: fd })
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.success) {
-                                const row = document.querySelector('tr[data-task-id="' + taskId + '"]');
-                                if (row) {
-                                    const statusCell = row.querySelector('.task-status');
-                                    const approvedByCell = row.querySelector('.task-approved-by');
-                                    if (statusCell) statusCell.textContent = 'approved';
-                                    if (approvedByCell) approvedByCell.textContent = data.approved_by || 'Admin';
-                                    const actionCell = row.querySelector('td.position-relative');
-                                    if (actionCell) actionCell.innerHTML = '<p class="text-muted d-inline-block mr-2">No actions available</p>';
-                                }
-                                alert(data.message || 'Document approved');
-                            } else {
-                                alert(data.message || 'Failed');
-                            }
-                        }).catch(err => {
-                            console.error(err);
-                            alert('An error occurred');
-                        });
-                }
-            });
-        });
-    </script>
+    @push('scripts')
+        <script src="{{ asset('js/admin-task.js') }}"></script>      
+    @endpush
 @endsection
+
+{{-- Rejection modal placed outside section so it's always present on page --}}
+@push('scripts')
+    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="reject-form" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="rejectModalLabel">Reject Document</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="rejection_reason">Rejection Reason</label>
+                            <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="4" required></textarea>
+                        </div>
+                        <div class="alert alert-danger d-none" id="reject-error"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" id="reject-submit">Submit Rejection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endpush
+
+@push('scripts')
+    <!-- View-only Rejection Reason Modal -->
+    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rejection Reason</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="viewRejectionText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endpush
