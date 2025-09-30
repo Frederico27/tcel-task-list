@@ -207,6 +207,15 @@
                 <div class="card shadow mb-4">
                     <div class="card-body">
                         {{-- Bulk approve form (will be populated with selected ids on submit) --}}
+                        {{-- Search form --}}
+                        <form method="GET" action="{{ route('admin.taskList') }}" class="form-inline mb-3">
+                            <div class="input-group">
+                                <input name="q" type="text" class="form-control" placeholder="Search documents..." value="{{ request('q') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                                </div>
+                            </div>
+                        </form>
                         <form id="bulk-approve-form" action="{{ route('admin.bulkApprove') }}" method="POST"
                             style="display:inline;">
                             @csrf
@@ -234,7 +243,17 @@
                                         <tr>
                                             <td>{{ $doc->type_document }}</td>
                                             <td>{{ $doc->pic }}</td>
-                                            <td>{{ $doc->approval }}</td>
+                                            <td>
+                                                @if(strtolower($doc->approval) == 'approved')
+                                                    <span class="badge badge-success">Approved</span>
+                                                @elseif(strtolower($doc->approval) == 'rejected')
+                                                    <span class="badge badge-danger">Rejected</span>
+                                                @elseif(in_array(strtolower($doc->approval), ['waiting_approval', 'waiting', 'pending']))
+                                                    <span class="badge badge-warning">Waiting</span>
+                                                @else
+                                                    <span class="badge badge-secondary">{{ $doc->approval }}</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $doc->creating_task }}</td>
                                             <td class="text-center align-middle">
                                                 <button type="button" class="btn btn-sm btn-info toggle-child"
@@ -313,10 +332,17 @@
 
                                                                     <td class="task-status @if($task->status == 'rejected') clickable-rejection @endif"
                                                                         data-rejection="{{ $task->rejected_reason ?? '' }}">
-                                                                        @if($task->status == 'rejected')
-                                                                            <a href="#" class="show-rejection" data-rejection="{{ $task->rejected_reason ?? '' }}">rejected</a>
+                                                                        @php $s = strtolower($task->status ?? ''); @endphp
+                                                                        @if($s == 'rejected')
+                                                                            <a href="#" class="show-rejection" data-rejection="{{ $task->rejected_reason ?? '' }}">
+                                                                                <span class="badge badge-danger">Rejected</span>
+                                                                            </a>
+                                                                        @elseif(in_array($s, ['waiting_approval', 'waiting', 'pending']))
+                                                                            <span class="badge badge-warning">Waiting Approval</span>
+                                                                        @elseif($s == 'approved')
+                                                                            <span class="badge badge-success">Approved</span>
                                                                         @else
-                                                                            {{ $task->status }}
+                                                                            <span class="badge badge-secondary">{{ $task->status }}</span>
                                                                         @endif
                                                                     </td>
                                                                     <td class="text-center task-approved-by">

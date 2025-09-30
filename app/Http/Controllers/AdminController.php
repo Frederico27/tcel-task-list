@@ -98,16 +98,30 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Document deleted successfully.');
     }
 
-    public function taskList()
+    public function taskList(Request $request)
     {
-        $docs = Documents::with(['pendingTask' => function ($query) {
+        // allow searching by a free-text query across a few document fields
+        $q = $request->input('q');
+
+        $docsQuery = Documents::with(['pendingTask' => function ($query) {
             $query->where('status', '!=', 'waiting_document');
         }])
             ->whereHas('pendingTask', function ($query) {
                 $query->where('status', '!=', 'waiting_document');
-            })
-            ->get();
+            });
 
+        if (!empty($q)) {
+            $like = '%' . $q . '%';
+            $docsQuery->where(function ($query) use ($like) {
+                // search in visible text columns. pic and approval are stored as JSON/text,
+                // so a LIKE search will still match common values.
+                $query->where('type_document', 'like', $like)
+                    ->orWhere('pic', 'like', $like)
+                    ->orWhere('approval', 'like', $like);
+            });
+        }
+
+        $docs = $docsQuery->get();
 
         return view('admin.taskList', compact('docs'));
     }
@@ -116,6 +130,7 @@ class AdminController extends Controller
     {
         $task = PendingTask::findOrFail($id);
         $task->status = 'approved';
+        $task->rejected_reason = null; // clear any previous rejection reason
         $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin'; // use auth user name if available
         $task->save();
 
