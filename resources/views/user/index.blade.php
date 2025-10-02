@@ -246,10 +246,17 @@
 
                                             <td class="task-status @if($doc->status == 'rejected') clickable-rejection @endif"
                                                 data-rejection="{{ $doc->rejected_reason ?? '' }}">
-                                                @if($doc->status == 'rejected')
-                                                    <a href="#" class="show-rejection" data-rejection="{{ $doc->rejected_reason ?? '' }}">rejected</a>
+                                                @php $s = strtolower($doc->status ?? ''); @endphp
+                                                @if($s == 'rejected')
+                                                    <a href="#" class="show-rejection" data-rejection="{{ $doc->rejected_reason ?? '' }}">
+                                                        <span class="badge badge-danger">Rejected</span>
+                                                    </a>
+                                                @elseif(in_array($s, ['waiting_document', 'waiting', 'pending', 'waiting_approval']))
+                                                    <span class="badge badge-warning">Waiting</span>
+                                                @elseif($s == 'approved')
+                                                    <span class="badge badge-success">Approved</span>
                                                 @else
-                                                    {{ $doc->status }}
+                                                    <span class="badge badge-secondary">{{ $doc->status }}</span>
                                                 @endif
                                             </td>
                                             <td>{{ $doc->approved_by ?? '-' }}</td>
