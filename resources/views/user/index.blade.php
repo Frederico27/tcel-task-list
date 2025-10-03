@@ -206,6 +206,21 @@
                 <!-- DataTales Example -->
                 <div class="card shadow mb-4">
                     <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <label for="statusFilter" class="mr-2 mb-0">Filter by status:</label>
+                            <select id="statusFilter" class="form-control form-control-sm mr-2" style="width:auto;">
+                                <option value="all">All</option>
+                                @foreach ($status as $st)
+                                    <option value="{{ strtolower($st) }}">{{ ucwords(str_replace('_', ' ', $st)) }}</option>
+                                @endforeach
+                            </select>
+                            <button id="clearFilterBtn" class="btn btn-sm btn-secondary mr-3">Clear</button>
+
+                            {{-- Search input pushed to the right --}}
+                            <input id="tableSearch" type="search" class="form-control form-control-sm ml-auto"
+                                placeholder="Search documents, period or approver..." style="width:280px;">
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
                                 style="color: black">
@@ -221,7 +236,8 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($docs as $doc)
-                                        <tr>
+                                        @php $s = strtolower($doc->status ?? ''); @endphp
+                                        <tr data-status="{{ $s }}">
                                             <td>{{ $doc->document->type_document }}</td>
                                             <td>{{ $doc->periode_date }}</td>
                                             <td>
@@ -244,11 +260,11 @@
                                             </td>
 
 
-                                            <td class="task-status @if($doc->status == 'rejected') clickable-rejection @endif"
+                                            <td class="task-status @if ($doc->status == 'rejected') clickable-rejection @endif"
                                                 data-rejection="{{ $doc->rejected_reason ?? '' }}">
-                                                @php $s = strtolower($doc->status ?? ''); @endphp
-                                                @if($s == 'rejected')
-                                                    <a href="#" class="show-rejection" data-rejection="{{ $doc->rejected_reason ?? '' }}">
+                                                @if ($s == 'rejected')
+                                                    <a href="#" class="show-rejection"
+                                                        data-rejection="{{ $doc->rejected_reason ?? '' }}">
                                                         <span class="badge badge-danger">Rejected</span>
                                                     </a>
                                                 @elseif(in_array($s, ['waiting_document', 'waiting', 'pending', 'waiting_approval']))
@@ -361,37 +377,9 @@
 
     </div>
     <!-- End of Content Wrapper -->
-@endsection
 
-@push('scripts')
-    <script src="{{ asset('js/form-upload-file.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const uploadButtons = document.querySelectorAll('.upload-btn');
-            const modal = document.getElementById('uploadModal');
-            const uploadForm = document.getElementById('uploadForm');
-            const docIdInput = document.getElementById('modal_doc_id');
 
-            uploadButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const docId = this.dataset.id;
-
-                    // Update hidden input
-                    docIdInput.value = docId;
-
-                    // Update form action sesuai format route
-                    uploadForm.action = "{{ url('user') }}/" + docId + "/upload";
-
-                    // Show modal
-                    $('#uploadModal').modal('show');
-                });
-            });
-        });
-    </script>
-@endpush
-
-@push('scripts')
-    <!-- View-only Rejection Reason Modal for users -->
+        <!-- View-only Rejection Reason Modal for users -->
     <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -410,21 +398,10 @@
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const viewModalEl = document.getElementById('viewRejectionModal');
-            if (!viewModalEl) return;
-            const $viewModal = window.jQuery ? window.jQuery(viewModalEl) : null;
-            const viewText = document.getElementById('viewRejectionText');
 
-            document.addEventListener('click', function (e) {
-                const a = e.target.closest && e.target.closest('.show-rejection');
-                if (!a) return;
-                e.preventDefault();
-                const reason = a.getAttribute('data-rejection') || '';
-                if (viewText) viewText.textContent = reason || 'No reason provided.';
-                if ($viewModal) $viewModal.modal('show');
-            });
-        });
-    </script>
+@endsection
+
+@push('scripts')
+    <script src="{{ asset('js/form-upload-file.js') }}"></script>
+    <script src="{{ asset('js/user-task.js') }}"></script>
 @endpush

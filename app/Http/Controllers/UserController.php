@@ -11,7 +11,10 @@ class UserController extends Controller
     {
         $docs = PendingTask::all();
 
-        return view('user.index', compact('docs'));
+        // collect unique statuses from the docs to populate the filter
+        $status = $docs->pluck('status')->unique()->filter()->values();
+
+        return view('user.index', compact('docs', 'status'));
     }
 
     // upload document for a pending task
