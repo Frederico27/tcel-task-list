@@ -7,6 +7,7 @@ use App\Models\PendingTask;
 use App\Models\TypePeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class AdminController extends Controller
 {
@@ -20,7 +21,6 @@ class AdminController extends Controller
 
     public function addDocument(Request $request)
     {
-
         $request->validate([
             'type_document' => 'required|string|max:255',
             'pic' => 'required|array',
@@ -60,6 +60,7 @@ class AdminController extends Controller
 
     public function updateDocument(Request $request, $id)
     {
+
         $request->validate([
             'type_document' => 'required|string|max:255',
             'pic' => 'required|array',
@@ -198,5 +199,17 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('success', 'Document rejected successfully.');
+    }
+
+    public static function apiEmployees()
+    {
+        $response = Http::withToken('dfhdskY1fcF&srnPyzYSK6yN6murhQBtGa5rnlGAajX2n9271mndlqoUekwdnvuDbdsSldgQidfb13bds92nKdb!bdk$h@bskOebvakQndksu2bdfkuwe8163bcdkdafyebKDYDLwhfbvdslab2349364bdvakdfudafvdfabwkYDBA')
+            ->get('https://e-portal.telkomcel.tl/app/ext/ssotcel/api/v1/emp/employees?trxid=123456789&channel=9999');
+        if ($response->successful()) {
+            $users = $response->json();
+            return $users['data'];
+        } else {
+            return response()->json(['error' => 'Failed to fetch employees'], $response->status());
+        }
     }
 }

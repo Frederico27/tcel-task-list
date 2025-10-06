@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Admin Dashboard')
 
+@php
+    use App\Http\Controllers\AdminController;
+    $apiEmployees = AdminController::apiEmployees();
+@endphp
+
 @section('content')
 
     <!-- Content Wrapper -->
@@ -298,9 +303,17 @@
                                 <label for="multiple-select-field-pic" class="form-label">PIC</label>
                                 <select class="form-select select2" id="multiple-select-field-pic"
                                     data-placeholder="Select PIC" name="pic[]" multiple required style="width: 100%;">
-                                    <option value="4444">Riko - 4444</option>
-                                    <option value="5555">Enio - 5555</option>
-                                    <option value="6666">Crescencio - 6666</option>
+                                    @if(!empty($apiEmployees))
+                                        @foreach($apiEmployees as $employee)
+                                            @php
+                                                $empId = data_get($employee, 'nik');
+                                                $empName = data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
+                                            @endphp
+                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} - {{ $empId }}</option>
+                                        @endforeach
+                                    @else
+                                        <option disabled>No employees available</option>
+                                    @endif
                                 </select>
                             </div>
 
@@ -421,9 +434,17 @@
                                 <label for="edit-multiple-select-field-pic" class="form-label">PIC</label>
                                 <select class="form-select select2" id="edit-multiple-select-field-pic"
                                     data-placeholder="Select PIC" name="pic[]" multiple required style="width: 100%;">
-                                    <option value="4444">Riko - 4444</option>
-                                    <option value="5555">Enio - 5555</option>
-                                    <option value="6666">Crescencio - 6666</option>
+                                    @if(!empty($apiEmployees))
+                                        @foreach($apiEmployees as $employee)
+                                            @php
+                                                $empId = data_get($employee, 'nik');
+                                                $empName = data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
+                                            @endphp
+                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} - {{ $empId }}</option>
+                                        @endforeach
+                                    @else
+                                        <option disabled>No employees available</option>
+                                    @endif
                                 </select>
                             </div>
 

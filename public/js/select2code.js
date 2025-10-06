@@ -272,7 +272,7 @@ $(function () {
                     // set form action
                     const form = document.getElementById('editTaskForm');
                     if (form) {
-                        form.action = "{{ url('admin') }}/" + id;
+                        form.action = id;
                     }
                     // If the selected period type is Yearly, populate the edit datepicker input
                     try {

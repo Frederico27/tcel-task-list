@@ -19,3 +19,7 @@ Route::delete('/admin/{id}', [App\Http\Controllers\AdminController::class, 'dele
 //Added routes for user
 Route::get('/user', [App\Http\Controllers\UserController::class, 'index'])->name('user.index');
 Route::post('/user/{id}/upload', [App\Http\Controllers\UserController::class, 'uploadDocument'])->name('user.uploadDocument');
+
+
+// API route to fetch employees
+Route::get('/api/employees', [App\Http\Controllers\AdminController::class, 'apiEmployees'])->name('api.employees');
