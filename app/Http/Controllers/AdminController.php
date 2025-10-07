@@ -203,8 +203,8 @@ class AdminController extends Controller
 
     public static function apiEmployees()
     {
-        $response = Http::withToken('dfhdskY1fcF&srnPyzYSK6yN6murhQBtGa5rnlGAajX2n9271mndlqoUekwdnvuDbdsSldgQidfb13bds92nKdb!bdk$h@bskOebvakQndksu2bdfkuwe8163bcdkdafyebKDYDLwhfbvdslab2349364bdvakdfudafvdfabwkYDBA')
-            ->get('https://e-portal.telkomcel.tl/app/ext/ssotcel/api/v1/emp/employees?trxid=123456789&channel=9999');
+        $response = Http::withToken(config('services.e-portal.bearer_token'))
+            ->get(config('services.e-portal.url') . '/app/ext/ssotcel/api/v1/emp/employees?trxid=123456789&channel=9999');
         if ($response->successful()) {
             $users = $response->json();
             return $users['data'];
