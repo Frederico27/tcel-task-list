@@ -206,7 +206,7 @@ class AdminController extends Controller
     public static function apiEmployees()
     {
         $response = Http::withToken(config('services.e-portal.bearer_token'))
-            ->get(config('services.e-portal.url') . '/app/ext/ssotcel/api/v1/emp/employees?trxid=123456789&channel=9999');
+            ->get(config('services.e-portal.url_portal') . '/app/ext/ssotcel/api/v1/emp/employees?trxid=123456789&channel=9999');
         if ($response->successful()) {
             $users = $response->json();
             return $users['data'];

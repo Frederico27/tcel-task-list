@@ -18,7 +18,7 @@ class SsoAuthMiddleware
     public function handle(Request $request, Closure $next): Response
     {
 
-        $baseUrl = config('services.e-portal.url');
+        $baseUrl = config('services.e-portal.url_portal');
         $key_cookies = $_COOKIE[config('services.e-portal.key_cookies')] ?? null;
         Log::info('This is cookies tcel_sso: ' . $key_cookies);
         $url  = rtrim($baseUrl, '/') . '/' . ltrim($key_cookies, '/');
