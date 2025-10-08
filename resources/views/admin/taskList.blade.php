@@ -311,7 +311,7 @@
                                                                                         PATHINFO_EXTENSION,
                                                                                     ),
                                                                                 );
-                                                                                $fileUrl = asset($task->upload); // karena kamu simpan langsung di public/uploads
+                                                                                $fileUrl = url($task->upload); // karena kamu simpan langsung di public/uploads
                                                                             @endphp
 
                                                                             @if ($ext === 'pdf')
@@ -403,7 +403,7 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/admin-task.js') }}"></script>      
+        <script src="{{ url('js/admin-task.js') }}"></script>      
     @endpush
 @endsection
 
