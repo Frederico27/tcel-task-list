@@ -403,7 +403,7 @@
     </div>
 
     @push('scripts')
-        <script src="{{ url('js/admin-task.js') }}"></script>      
+        <script src="{{ secure_asset('js/admin-task.js') }}"></script>      
     @endpush
 @endsection
 

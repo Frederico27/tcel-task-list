@@ -244,7 +244,7 @@
                                                 @if ($doc->upload)
                                                     @php
                                                         $ext = strtolower(pathinfo($doc->upload, PATHINFO_EXTENSION));
-                                                        $fileUrl = url($doc->upload); // karena kamu simpan langsung di public/uploads
+                                                        $fileUrl = secure_asset($doc->upload); // karena kamu simpan langsung di public/uploads
                                                     @endphp
 
                                                     @if ($ext === 'pdf')
@@ -280,7 +280,7 @@
                                                 <td class="text-center">
                                                     <button type="button" class="btn btn-sm btn-success upload-btn"
                                                         data-id="{{ $doc->id_pending_task }}"
-                                                        data-file="{{ $doc->upload ? url('storage/' . $doc->upload) : '' }}">
+                                                        data-file="{{ $doc->upload ? secure_asset('storage/' . $doc->upload) : '' }}">
                                                         Upload / Preview
                                                     </button>
                                                 </td>
@@ -288,7 +288,7 @@
                                                 <td class="text-center">
                                                     <button type="button" class="btn btn-sm btn-success upload-btn"
                                                         data-id="{{ $doc->id_pending_task }}"
-                                                        data-file="{{ $doc->upload ? url('storage/' . $doc->upload) : '' }}">
+                                                        data-file="{{ $doc->upload ? secure_asset('storage/' . $doc->upload) : '' }}">
                                                         Revise & Upload again
                                                     </button>
                                                 </td>
@@ -402,6 +402,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ url('js/form-upload-file.js') }}"></script>
-    <script src="{{ url('js/user-task.js') }}"></script>
+    <script src="{{ secure_asset('js/form-upload-file.js') }}"></script>
+    <script src="{{ secure_asset('js/user-task.js') }}"></script>
 @endpush

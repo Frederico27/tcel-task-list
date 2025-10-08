@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('https://e-portal.telkomcel.tl/app/ext/tasklist/audit', 'https://e-portal.telkomcel.tl/app/ext/tasklist/audit'),
+    'url' => env('APP_URL', 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------
