@@ -41,6 +41,7 @@ return [
         'username' => env('USERNAME_SSO_TCEL'),
         'password' => env('PASSWORD_SSO_TCEL'),
         'tree_menu_id' => env('TREEMENUID'),
+        'key_cookies' => env('KEY_COOKIES_SSO_TCEL', '__secure_sso_tcel'),
     ]
 
 ];

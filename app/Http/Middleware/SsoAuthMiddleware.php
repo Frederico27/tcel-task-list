@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Response;
 
 class SsoAuthMiddleware
@@ -15,16 +16,23 @@ class SsoAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $sso_data  = $request->cookie('__secured_sso_tcel');
+
+        $baseUrl = config('services.e-portal.url');
+        $key_cookies = $request->cookie(config('services.e-portal.key_cookies'));
+        $url  = rtrim($baseUrl, '/') . '/' . ltrim($key_cookies, '/');
+
+        $headers = [
+            'Username' => config('services.e-portal.username'),
+            'Password' => config('services.e-portal.password'),
+        ];
+
+        $response = Http::withOptions(['verify' => false])
+            ->withHeaders($headers)
+            ->get($url);
+
+        $sso_data = $response->json();
 
         if (!$sso_data) {
-            return response("You are not authorized to access this resource.", 401);
-        }
-
-        $treemenu_id = config('services.e-portal.tree_menu_id');
-        $sso_tree_menu = $sso_data['data']['treemenuid'] ?? [];
-
-        if (!in_array($treemenu_id, $sso_tree_menu)) {
             return response("You are not authorized to access this resource.", 401);
         }
 
@@ -33,6 +41,7 @@ class SsoAuthMiddleware
         }
 
         session(['sso_user' => $sso_data['data']]);
+
 
         return $next($request);
     }
