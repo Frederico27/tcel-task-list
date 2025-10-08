@@ -9,7 +9,8 @@ class UserController extends Controller
 {
     public function index()
     {
-        $docs = PendingTask::all();
+        $nik = session('sso_user')['nik'];
+        $docs = PendingTask::all()->where('pic',);
 
         // collect unique statuses from the docs to populate the filter
         $status = $docs->pluck('status')->unique()->filter()->values();

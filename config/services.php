@@ -39,7 +39,8 @@ return [
         'url' => env('E_PORTAL'),
         'bearer_token' => env('BEARER_TOKEN'),
         'username' => env('USERNAME_SSO_TCEL'),
-        'password' => env('PASSWORD_SSO_TCEL')
+        'password' => env('PASSWORD_SSO_TCEL'),
+        'tree_menu_id' => env('TREEMENUID'),
     ]
 
 ];

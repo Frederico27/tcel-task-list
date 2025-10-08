@@ -104,11 +104,13 @@ class AdminController extends Controller
         // allow searching by a free-text query across a few document fields
         $q = $request->input('q');
 
-        $docsQuery = Documents::with(['pendingTask' => function ($query) {
-            $query->where('status', '!=', 'waiting_document');
+        $nik = session('sso_user')['nik'];
+
+        $docsQuery = Documents::with(['pendingTask' => function ($query) use ($nik) {
+            $query->where('status', '!=', 'waiting_document')->where('approval', 'like', '%' . $nik . '%');
         }])
-            ->whereHas('pendingTask', function ($query) {
-                $query->where('status', '!=', 'waiting_document');
+            ->whereHas('pendingTask', function ($query) use ($nik) {
+                $query->where('status', '!=', 'waiting_document')->where('approval', 'like', '%' . $nik . '%');
             });
 
         if (!empty($q)) {
@@ -132,7 +134,7 @@ class AdminController extends Controller
         $task = PendingTask::findOrFail($id);
         $task->status = 'approved';
         $task->rejected_reason = null; // clear any previous rejection reason
-        $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin'; // use auth user name if available
+        $task->approved_by = session('sso_user')['fullname'] ?? 'Admin'; // use auth user name if available
         $task->save();
 
         if (request()->wantsJson()) {
@@ -158,12 +160,12 @@ class AdminController extends Controller
         $tasks = PendingTask::whereIn('id_pending_task', $ids)->get();
         foreach ($tasks as $task) {
             $task->status = 'approved';
-            $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin';
+            $task->approved_by = session('sso_user')['fullname'] ?? 'Admin';
             $task->save();
         }
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => count($tasks) . ' document(s) approved successfully.', 'approved_by' => Auth::check() ? Auth::user()->name : 'Admin']);
+            return response()->json(['success' => true, 'message' => count($tasks) . ' document(s) approved successfully.', 'approved_by' => session('sso_user')['fullname'] ?? 'Admin']);
         }
 
         return redirect()->back()->with('success', count($tasks) . ' document(s) approved successfully.');
@@ -186,7 +188,7 @@ class AdminController extends Controller
         }
         $task->upload = '';
         // Optionally record who performed the rejection
-        $task->approved_by = Auth::check() ? Auth::user()->name : 'Admin';
+        $task->approved_by = session('sso_user')['fullname'] ?? 'Admin';
         $task->save();
 
         if ($request->wantsJson()) {
