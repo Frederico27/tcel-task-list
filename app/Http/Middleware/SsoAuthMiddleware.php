@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class SsoAuthMiddleware
@@ -19,6 +20,7 @@ class SsoAuthMiddleware
 
         $baseUrl = config('services.e-portal.url');
         $key_cookies = $request->cookie(config('services.e-portal.key_cookies'));
+        Log::info('This is cookies tcel_sso: ' . $key_cookies);
         $url  = rtrim($baseUrl, '/') . '/' . ltrim($key_cookies, '/');
 
         $headers = [
@@ -30,6 +32,7 @@ class SsoAuthMiddleware
             ->withHeaders($headers)
             ->get($url);
 
+        Log::info('Response SSO_TCEL: ' . $response);
         $sso_data = $response->json();
 
         if (!$sso_data) {
