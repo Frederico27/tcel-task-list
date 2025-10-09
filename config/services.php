@@ -36,7 +36,8 @@ return [
     ],
 
     'e-portal' => [
-        'url_portal' => env('E_PORTAL'),
+        'url_portal_session' => env('E_PORTAL_SESSION'),
+        'url_portal' => env('E_PORTAL_BASE'),
         'bearer_token' => env('BEARER_TOKEN'),
         'username' => env('USERNAME_SSO_TCEL'),
         'password' => env('PASSWORD_SSO_TCEL'),
