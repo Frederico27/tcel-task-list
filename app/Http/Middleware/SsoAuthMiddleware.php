@@ -23,7 +23,6 @@ class SsoAuthMiddleware
         Log::info('This is cookies tcel_sso: ' . $key_cookies);
         $url  = rtrim($baseUrl, '/') . '/' . ltrim($key_cookies, '/');
 
-        dd($url);
         $headers = [
             'Username' => config('services.e-portal.username'),
             'Password' => config('services.e-portal.password'),
