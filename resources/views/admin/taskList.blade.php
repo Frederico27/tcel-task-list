@@ -15,7 +15,7 @@
 
                 <!-- Topbar Application Name -->
                 <div class="d-none d-sm-inline-block ml-md-3 my-2 my-md-0">
-                    <a href="{{ route('admin.taskList') }}">
+                    <a href="{{ config('app.url') . '/task' }}">
                         <h5 class="text-danger font-weight-bold m-0">
                             TASK LIST TCEL
                         </h5>
@@ -210,7 +210,7 @@
                     <div class="card-body">
                         {{-- Bulk approve form (will be populated with selected ids on submit) --}}
                         {{-- Search form --}}
-                        <form method="GET" action="{{ route('admin.taskList') }}" class="form-inline mb-3">
+                        <form method="GET" action="{{ config('app.url') . 'admin/task' }}" class="form-inline mb-3">
                             <div class="input-group">
                                 <input name="q" type="text" class="form-control" placeholder="Search documents..."
                                     value="{{ request('q') }}">
@@ -219,7 +219,7 @@
                                 </div>
                             </div>
                         </form>
-                        <form id="bulk-approve-form" action="{{ route('admin.bulkApprove') }}" method="POST"
+                        <form id="bulk-approve-form" action="{{ config('app.url') . 'admin/approve-bulk' }}" method="POST"
                             style="display:inline;">
                             @csrf
                             <div id="bulk-inputs"></div>
@@ -360,7 +360,7 @@
                                                                             {{-- Reject button - opens modal to input rejection reason --}}
                                                                             <button type="button"
                                                                                 class="btn btn-sm btn-danger mb-1 reject-btn"
-                                                                                data-action="{{ route('admin.rejectDocument', $task->id_pending_task) }}"
+                                                                                data-action="{{ config('app.url') . "admin/reject/$task->id_pending_task" }}"
                                                                                 data-task-id="{{ $task->id_pending_task }}">
                                                                                 Reject
                                                                             </button>

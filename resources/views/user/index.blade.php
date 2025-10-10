@@ -15,7 +15,7 @@
 
                 <!-- Topbar Application Name -->
                 <div class="d-none d-sm-inline-block ml-md-3 my-2 my-md-0">
-                    <a href="{{ route('user.index') }}">
+                    <a href="{{ config('app.url') . 'user' }}">
                         <h5 class="text-danger font-weight-bold m-0">
                             TASK LIST TCEL
                         </h5>
@@ -320,7 +320,7 @@
             aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
-                    <form id="uploadForm" method="POST" action="{{ route('user.uploadDocument', 0) }}"
+                    <form id="uploadForm" method="POST" action="{{ config('app.url') . "user/0/upload" }}"
                         enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="doc_id" id="modal_doc_id">

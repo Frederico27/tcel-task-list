@@ -20,7 +20,7 @@
 
                 <!-- Topbar Application Name -->
                 <div class="d-none d-sm-inline-block ml-md-3 my-2 my-md-0">
-                    <a href="{{ route('admin.index') }}">
+                    <a href="{{ config('app.url') . 'admin' }}">
                         <h5 class="text-danger font-weight-bold m-0">
                             TASK LIST TCEL
                         </h5>
@@ -175,7 +175,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span
-                                class="mr-2 d-none d-lg-inline text-gray-600 small">{{ session('sso_user')['fullname'] }}</span>
+                                class="mr-2 d-none d-lg-inline text-gray-600 small"></span>
                             <img class="img-profile rounded-circle"
                                 src="https://cdn-icons-png.flaticon.com/512/4792/4792929.png">
                         </a>
@@ -256,7 +256,7 @@
                                                     data-creating_task='{{ $doc->creating_task }}'>
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ route('admin.deleteDocument', $doc->id_documents) }}"
+                                                <form action="{{ config('app.url'). "admin/$doc->id_documents" }}"
                                                     method="POST" style="display:inline;">
                                                     @csrf
                                                     @method('DELETE')
@@ -292,7 +292,7 @@
                         </button>
                     </div>
                     <!-- Add Task Form -->
-                    <form action="{{ route('admin.addDocument') }}" method="POST" autocomplete="off">
+                    <form action="{{ config('app.url') . 'admin' }}" method="POST" autocomplete="off">
                         @csrf
                         <div class="modal-body">
                             <div class="form-group">
@@ -326,9 +326,19 @@
                                 <select class="form-select select2" id="multiple-select-field-approval"
                                     data-placeholder="Select Approvals" name="approval[]" multiple required
                                     style="width: 100%;">
-                                    <option value="1111">Joao - 1111</option>
-                                    <option value="2222">Markus - 2222</option>
-                                    <option value="3333">Joana - 3333</option>
+                                    @if (!empty($apiEmployees))
+                                        @foreach ($apiEmployees as $employee)
+                                            @php
+                                                $empId = data_get($employee, 'nik');
+                                                $empName =
+                                                    data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
+                                            @endphp
+                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} -
+                                                {{ $empId }}</option>
+                                        @endforeach
+                                    @else
+                                        <option disabled>No employees available</option>
+                                    @endif
                                 </select>
                             </div>
 
