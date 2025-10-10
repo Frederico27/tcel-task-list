@@ -269,10 +269,17 @@ $(function () {
 
                     document.getElementById('edit_creating_task').value = creating_task;
 
-                    // set form action
+                    // set form action to a canonical absolute admin URL to avoid relative-path issues
                     const form = document.getElementById('editTaskForm');
                     if (form) {
-                        form.action = id;
+                        // normalize id to remove any leading slashes
+                        var normalizedId = String(id || '').replace(/^\/+/, '');
+                        // prefer origin-based absolute URL; fall back to root-relative path
+                        if (window.location && window.location.origin) {
+                            form.action = window.location.origin + '/admin/' + normalizedId;
+                        } else {
+                            form.action = '/admin/' + normalizedId;
+                        }
                     }
                     // If the selected period type is Yearly, populate the edit datepicker input
                     try {
