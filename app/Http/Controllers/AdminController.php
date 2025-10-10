@@ -5,55 +5,77 @@ namespace App\Http\Controllers;
 use App\Models\Documents;
 use App\Models\PendingTask;
 use App\Models\TypePeriod;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
     public function index()
     {
 
-        $docs = Documents::all();
+        try {
+            $docs = Documents::all();
+        } catch (Exception $e) {
+            Log::error('Failed to load data', [
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return view('admin.index', compact('docs'));
     }
 
     public function addDocument(Request $request)
     {
-        $request->validate([
-            'type_document' => 'required|string|max:255',
-            'pic' => 'required|array',
-            'approval' => 'required|array',
-            'type_periods' => 'required|string',
-            'periods' => 'sometimes|array',
-            // Set default value for periods if not present
-            'creating_task' => 'required|string|max:255',
-        ]);
 
-        if (!$request->input('periods')) {
-            $request->merge(['periods' => ['0']]);
+        try {
+            $request->validate([
+                'type_document' => 'required|string|max:255',
+                'pic' => 'required|array',
+                'approval' => 'required|array',
+                'type_periods' => 'required|string',
+                'periods' => 'sometimes|array',
+                // Set default value for periods if not present
+                'creating_task' => 'required|string|max:255',
+            ]);
+
+            if (!$request->input('periods')) {
+                $request->merge(['periods' => ['0']]);
+            }
+
+            $document = new Documents();
+            $document->type_document = $request->input('type_document');
+            $document->pic = json_encode($request->input('pic'));
+            $document->approval = json_encode($request->input('approval'));
+            $document->creating_task = $request->input('creating_task');
+            $document->save();
+        } catch (Exception $e) {
+            // Log the error with context
+            Log::error('Failed to add document', [
+                'error' => $e->getMessage(),
+                'input' => $request->all()
+            ]);
         }
 
-        $document = new Documents();
-        $document->type_document = $request->input('type_document');
-        $document->pic = json_encode($request->input('pic'));
-        $document->approval = json_encode($request->input('approval'));
-        $document->creating_task = $request->input('creating_task');
-        $document->save();
-
-        $document_period = new TypePeriod();
-        $document_period->id_documents = $document->id_documents;
-        // Determine period_type based on the number of selected periods
-        $selectedPeriods = $request->input('periods');
-        $document_period->period_type = $request->input('type_periods');
-        if (!$selectedPeriods) {
-            $document_period->period_value = null;
-        } else {
-            $document_period->period_value = json_encode($selectedPeriods);
+        try {
+            $document_period = new TypePeriod();
+            $document_period->id_documents = $document->id_documents;
+            // Determine period_type based on the number of selected periods
+            $selectedPeriods = $request->input('periods');
+            $document_period->period_type = $request->input('type_periods');
+            if (!$selectedPeriods) {
+                $document_period->period_value = null;
+            } else {
+                $document_period->period_value = json_encode($selectedPeriods);
+            }
+            $document_period->save();
+        } catch (Exception $e) {
+            Log::error('Failed to add document', [
+                'error' => $e->getMessage()
+            ]);
         }
-
-        $document_period->save();
 
         return redirect()->back()->with('success', 'Document added successfully.');
     }
@@ -61,41 +83,61 @@ class AdminController extends Controller
     public function updateDocument(Request $request, $id)
     {
 
-        $request->validate([
-            'type_document' => 'required|string|max:255',
-            'pic' => 'required|array',
-            'approval' => 'required|array',
-            'type_periods' => 'required|string',
-            'periods' => 'sometimes|array',
-            'creating_task' => 'required|string|max:255',
-        ]);
+        try {
+            $request->validate([
+                'type_document' => 'required|string|max:255',
+                'pic' => 'required|array',
+                'approval' => 'required|array',
+                'type_periods' => 'required|string',
+                'periods' => 'sometimes|array',
+                'creating_task' => 'required|string|max:255',
+            ]);
 
-        $document = Documents::findOrFail($id);
-        $document->type_document = $request->input('type_document');
-        $document->pic = $request->input('pic');
-        $document->approval = $request->input('approval');
-        $document->creating_task = $request->input('creating_task');
-        $document->save();
+            $document = Documents::findOrFail($id);
+            $document->type_document = $request->input('type_document');
+            $document->pic = $request->input('pic');
+            $document->approval = $request->input('approval');
+            $document->creating_task = $request->input('creating_task');
+            $document->save();
+        } catch (Exception $e) {
+            Log::error('Failed to edit document', [
+                'error' => $e->getMessage(),
+                'input' => $request->all()
+            ]);
+        }
 
-        // Update or create TypePeriod entry
-        $typePeriod = TypePeriod::firstOrNew(['id_documents' => $document->id_documents]);
-        $typePeriod->period_type = $request->input('type_periods');
-        $selected = $request->input('periods');
-        $typePeriod->period_value = $selected ? $selected : null;
-        $typePeriod->save();
+        try {
+            // Update or create TypePeriod entry
+            $typePeriod = TypePeriod::firstOrNew(['id_documents' => $document->id_documents]);
+            $typePeriod->period_type = $request->input('type_periods');
+            $selected = $request->input('periods');
+            $typePeriod->period_value = $selected ? $selected : null;
+            $typePeriod->save();
+        } catch (Exception $e) {
+            Log::error('Failed to edit document', [
+                'error' => $e->getMessage(),
+                'input' => $typePeriod->period_type
+            ]);
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Document updated', 'document' => $document]);
         }
+
 
         return redirect()->back()->with('success', 'Document updated successfully.');
     }
 
     public function deleteDocument($id)
     {
-        $document = Documents::findOrFail($id);
-        $document->delete();
-
+        try {
+            $document = Documents::findOrFail($id);
+            $document->delete();
+        } catch (Exception $e) {
+            Log::error("Failed to delete document", [
+                'error' => $e->getMessage()
+            ]);
+        }
         return redirect()->back()->with('success', 'Document deleted successfully.');
     }
 
@@ -131,11 +173,17 @@ class AdminController extends Controller
 
     public function approveDocument($id)
     {
-        $task = PendingTask::findOrFail($id);
-        $task->status = 'approved';
-        $task->rejected_reason = null; // clear any previous rejection reason
-        $task->approved_by = session('sso_user')['fullname'] ?? 'Admin'; // use auth user name if available
-        $task->save();
+        try {
+            $task = PendingTask::findOrFail($id);
+            $task->status = 'approved';
+            $task->rejected_reason = null; // clear any previous rejection reason
+            $task->approved_by = session('sso_user')['fullname'] ?? 'Admin'; // use auth user name if available
+            $task->save();
+        } catch (Exception $e) {
+            Log::error('Failed to approve document', [
+                'error' => $e->getMessage()
+            ]);
+        }
 
         if (request()->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Document approved successfully.', 'approved_by' => $task->approved_by]);
@@ -157,11 +205,17 @@ class AdminController extends Controller
             return redirect()->back()->with('error', 'Invalid data submitted.');
         }
 
-        $tasks = PendingTask::whereIn('id_pending_task', $ids)->get();
-        foreach ($tasks as $task) {
-            $task->status = 'approved';
-            $task->approved_by = session('sso_user')['fullname'] ?? 'Admin';
-            $task->save();
+        try {
+            $tasks = PendingTask::whereIn('id_pending_task', $ids)->get();
+            foreach ($tasks as $task) {
+                $task->status = 'approved';
+                $task->approved_by = session('sso_user')['fullname'] ?? 'Admin';
+                $task->save();
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to approve bulk document', [
+                'error' => $e->getMessage()
+            ]);
         }
 
         if ($request->wantsJson()) {
@@ -173,23 +227,29 @@ class AdminController extends Controller
 
     public function rejectDocument(Request $request, $id)
     {
-        $task = PendingTask::findOrFail($id);
-        $task->status = 'rejected';
+        try {
+            $task = PendingTask::findOrFail($id);
+            $task->status = 'rejected';
 
-        // Save rejection reason if provided
-        $reason = $request->input('rejection_reason');
-        if ($reason) {
-            $task->rejected_reason = $reason;
-        }
+            // Save rejection reason if provided
+            $reason = $request->input('rejection_reason');
+            if ($reason) {
+                $task->rejected_reason = $reason;
+            }
 
-        // remove the uploaded file
-        if ($task->upload && file_exists(public_path($task->upload))) {
-            @unlink(public_path($task->upload));
+            // remove the uploaded file
+            if ($task->upload && file_exists(public_path($task->upload))) {
+                @unlink(public_path($task->upload));
+            }
+            $task->upload = '';
+            // Optionally record who performed the rejection
+            $task->approved_by = session('sso_user')['fullname'] ?? 'Admin';
+            $task->save();
+        } catch (Exception $e) {
+            Log::error('Failed to reject document', [
+                'error' => $e->getMessage()
+            ]);
         }
-        $task->upload = '';
-        // Optionally record who performed the rejection
-        $task->approved_by = session('sso_user')['fullname'] ?? 'Admin';
-        $task->save();
 
         if ($request->wantsJson()) {
             return response()->json([

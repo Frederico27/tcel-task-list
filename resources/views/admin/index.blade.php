@@ -22,8 +22,8 @@
                 <div class="d-none d-sm-inline-block ml-md-3 my-2 my-md-0">
                     <a href="{{ route('admin.index') }}">
                         <h5 class="text-danger font-weight-bold m-0">
-                        TASK LIST TCEL
-                    </h5>
+                            TASK LIST TCEL
+                        </h5>
                     </a>
                 </div>
 
@@ -174,13 +174,15 @@
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                            <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                            <span
+                                class="mr-2 d-none d-lg-inline text-gray-600 small">{{ session('sso_user')['fullname'] }}</span>
+                            <img class="img-profile rounded-circle"
+                                src="https://cdn-icons-png.flaticon.com/512/4792/4792929.png">
                         </a>
                         <!-- Dropdown - User Information -->
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        {{-- <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                             aria-labelledby="userDropdown">
-                            {{-- <a class="dropdown-item" href="#">
+                            <a class="dropdown-item" href="#">
                                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Profile
                             </a>
@@ -192,12 +194,12 @@
                                 <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Activity Log
                             </a>
-                            <div class="dropdown-divider"></div> --}}
+                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Logout
                             </a>
-                        </div>
+                        </div> --}}
                     </li>
 
                 </ul>
@@ -243,8 +245,8 @@
                                                 {{ $doc->creating_task <= 1 ? $doc->creating_task . ' day' : $doc->creating_task . ' days' }}
                                             </td>
                                             <td class="text-center">
-                                                <a href="#" class="btn btn-sm btn-warning edit-btn" data-toggle="modal"
-                                                    data-target="#editTaskModal" title="Edit"
+                                                <a href="#" class="btn btn-sm btn-warning edit-btn"
+                                                    data-toggle="modal" data-target="#editTaskModal" title="Edit"
                                                     data-id="{{ $doc->id_documents }}"
                                                     data-type_document="{{ $doc->type_document }}"
                                                     data-pic='{{ json_encode($doc->getPicArrayAttribute()) }}'
@@ -303,13 +305,15 @@
                                 <label for="multiple-select-field-pic" class="form-label">PIC</label>
                                 <select class="form-select select2" id="multiple-select-field-pic"
                                     data-placeholder="Select PIC" name="pic[]" multiple required style="width: 100%;">
-                                    @if(!empty($apiEmployees))
-                                        @foreach($apiEmployees as $employee)
+                                    @if (!empty($apiEmployees))
+                                        @foreach ($apiEmployees as $employee)
                                             @php
                                                 $empId = data_get($employee, 'nik');
-                                                $empName = data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
+                                                $empName =
+                                                    data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
                                             @endphp
-                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} - {{ $empId }}</option>
+                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} -
+                                                {{ $empId }}</option>
                                         @endforeach
                                     @else
                                         <option disabled>No employees available</option>
@@ -434,13 +438,15 @@
                                 <label for="edit-multiple-select-field-pic" class="form-label">PIC</label>
                                 <select class="form-select select2" id="edit-multiple-select-field-pic"
                                     data-placeholder="Select PIC" name="pic[]" multiple required style="width: 100%;">
-                                    @if(!empty($apiEmployees))
-                                        @foreach($apiEmployees as $employee)
+                                    @if (!empty($apiEmployees))
+                                        @foreach ($apiEmployees as $employee)
                                             @php
                                                 $empId = data_get($employee, 'nik');
-                                                $empName = data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
+                                                $empName =
+                                                    data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
                                             @endphp
-                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} - {{ $empId }}</option>
+                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} -
+                                                {{ $empId }}</option>
                                         @endforeach
                                     @else
                                         <option disabled>No employees available</option>
@@ -453,9 +459,19 @@
                                 <select class="form-select select2" id="edit-multiple-select-field-approval"
                                     data-placeholder="Select Approvals" name="approval[]" multiple required
                                     style="width: 100%;">
-                                    <option value="1111">Joao - 1111</option>
-                                    <option value="2222">Markus - 2222</option>
-                                    <option value="3333">Joana - 3333</option>
+                                    @if (!empty($apiEmployees))
+                                        @foreach ($apiEmployees as $employee)
+                                            @php
+                                                $empId = data_get($employee, 'nik');
+                                                $empName =
+                                                    data_get($employee, 'fullname') ?? data_get($employee, 'full_name');
+                                            @endphp
+                                            <option value="{{ $empId }}">{{ $empName ?? 'Unknown' }} -
+                                                {{ $empId }}</option>
+                                        @endforeach
+                                    @else
+                                        <option disabled>No employees available</option>
+                                    @endif
                                 </select>
                             </div>
 

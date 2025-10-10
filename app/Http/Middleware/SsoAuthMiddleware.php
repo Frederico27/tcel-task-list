@@ -32,7 +32,7 @@ class SsoAuthMiddleware
             ->withHeaders($headers)
             ->get($url);
 
-        Log::info('Response SSO_TCEL: ' . $response);
+        // Log::info('Response SSO_TCEL: ' . $response);
         $sso_data = $response->json();
 
         if (!$sso_data) {

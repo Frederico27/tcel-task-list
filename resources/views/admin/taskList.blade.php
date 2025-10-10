@@ -48,7 +48,7 @@
                             </form>
                         </div>
                     </li>
-{{-- 
+                    {{-- 
                     <!-- Nav Item - Alerts -->
                     <li class="nav-item dropdown no-arrow mx-1">
                         <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
@@ -169,13 +169,15 @@
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                            <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                            <span
+                                class="mr-2 d-none d-lg-inline text-gray-600 small">{{ session('sso_user')['fullname'] }}</span>
+                            <img class="img-profile rounded-circle"
+                                src="https://cdn-icons-png.flaticon.com/512/4792/4792929.png">
                         </a>
                         <!-- Dropdown - User Information -->
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        {{-- <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                             aria-labelledby="userDropdown">
-                            {{-- <a class="dropdown-item" href="#">
+                            <a class="dropdown-item" href="#">
                                 <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Profile
                             </a>
@@ -187,12 +189,12 @@
                                 <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Activity Log
                             </a>
-                            <div class="dropdown-divider"></div> --}}
+                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                 Logout
                             </a>
-                        </div>
+                        </div> --}}
                     </li>
 
                 </ul>
@@ -210,7 +212,8 @@
                         {{-- Search form --}}
                         <form method="GET" action="{{ route('admin.taskList') }}" class="form-inline mb-3">
                             <div class="input-group">
-                                <input name="q" type="text" class="form-control" placeholder="Search documents..." value="{{ request('q') }}">
+                                <input name="q" type="text" class="form-control" placeholder="Search documents..."
+                                    value="{{ request('q') }}">
                                 <div class="input-group-append">
                                     <button class="btn btn-outline-secondary" type="submit">Search</button>
                                 </div>
@@ -244,7 +247,7 @@
                                             <td>{{ $doc->type_document }}</td>
                                             <td>{{ $doc->pic }}</td>
                                             <td>
-                                                @if(strtolower($doc->approval) == 'approved')
+                                                @if (strtolower($doc->approval) == 'approved')
                                                     <span class="badge badge-success">Approved</span>
                                                 @elseif(strtolower($doc->approval) == 'rejected')
                                                     <span class="badge badge-danger">Rejected</span>
@@ -330,19 +333,24 @@
                                                                     </td>
 
 
-                                                                    <td class="task-status @if($task->status == 'rejected') clickable-rejection @endif"
+                                                                    <td class="task-status @if ($task->status == 'rejected') clickable-rejection @endif"
                                                                         data-rejection="{{ $task->rejected_reason ?? '' }}">
                                                                         @php $s = strtolower($task->status ?? ''); @endphp
-                                                                        @if($s == 'rejected')
-                                                                            <a href="#" class="show-rejection" data-rejection="{{ $task->rejected_reason ?? '' }}">
-                                                                                <span class="badge badge-danger">Rejected</span>
+                                                                        @if ($s == 'rejected')
+                                                                            <a href="#" class="show-rejection"
+                                                                                data-rejection="{{ $task->rejected_reason ?? '' }}">
+                                                                                <span
+                                                                                    class="badge badge-danger">Rejected</span>
                                                                             </a>
                                                                         @elseif(in_array($s, ['waiting_approval', 'waiting', 'pending']))
-                                                                            <span class="badge badge-warning">Waiting Approval</span>
+                                                                            <span class="badge badge-warning">Waiting
+                                                                                Approval</span>
                                                                         @elseif($s == 'approved')
-                                                                            <span class="badge badge-success">Approved</span>
+                                                                            <span
+                                                                                class="badge badge-success">Approved</span>
                                                                         @else
-                                                                            <span class="badge badge-secondary">{{ $task->status }}</span>
+                                                                            <span
+                                                                                class="badge badge-secondary">{{ $task->status }}</span>
                                                                         @endif
                                                                     </td>
                                                                     <td class="text-center task-approved-by">
@@ -403,13 +411,14 @@
     </div>
 
     @push('scripts')
-        <script src="{{ secure_asset('js/admin-task.js') }}"></script>      
+        <script src="{{ secure_asset('js/admin-task.js') }}"></script>
     @endpush
 @endsection
 
 {{-- Rejection modal placed outside section so it's always present on page --}}
 @push('scripts')
-    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form id="reject-form" method="POST">
@@ -439,7 +448,8 @@
 
 @push('scripts')
     <!-- View-only Rejection Reason Modal -->
-    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel" aria-hidden="true">
+    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">

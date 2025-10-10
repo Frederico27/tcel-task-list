@@ -3,17 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\PendingTask;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $nik = session('sso_user')['nik'];
-        $docs = PendingTask::all()->where('pic',);
+        try {
+            $nik = session('sso_user')['nik'];
+            $docs = PendingTask::all()->where('pic',);
 
-        // collect unique statuses from the docs to populate the filter
-        $status = $docs->pluck('status')->unique()->filter()->values();
+            // collect unique statuses from the docs to populate the filter
+            $status = $docs->pluck('status')->unique()->filter()->values();
+        } catch (Exception $e) {
+            Log::error('Failed to load user pending task', [
+                'error' => $e->getMessage(),
+                'session' => $nik
+            ]);
+        }
 
         return view('user.index', compact('docs', 'status'));
     }
@@ -21,17 +30,24 @@ class UserController extends Controller
     // upload document for a pending task
     public function uploadDocument(Request $request, $id)
     {
-        $request->validate([
-            'document_file' => 'required|file|mimes:pdf,doc,docx|max:20480', // max 20MB
-        ]);
+        try {
+            $request->validate([
+                'document_file' => 'required|file|mimes:pdf,doc,docx|max:20480', // max 20MB
+            ]);
 
-        $task = PendingTask::findOrFail($id);
-        $file = $request->file('document_file');
-        $filename = time() . '_' . $file->getClientOriginalName();
-        $file->move(public_path('uploads'), $filename);
-        $task->upload = 'uploads/' . $filename;
-        $task->status = 'waiting_approval';
-        $task->save();
+            $task = PendingTask::findOrFail($id);
+            $file = $request->file('document_file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $task->upload = 'uploads/' . $filename;
+            $task->status = 'waiting_approval';
+            $task->save();
+        } catch (Exception $e) {
+            Log::error('Failed to upload document', [
+                'error' => $e->getMessage(),
+                'input' => $request->all()
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Document uploaded successfully.');
     }
