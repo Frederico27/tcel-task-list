@@ -170,7 +170,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span
-                                class="mr-2 d-none d-lg-inline text-gray-600 small">{{ session('sso_user')['fullname'] }}</span>
+                                class="mr-2 d-none d-lg-inline text-gray-600 small"></span>
                             <img class="img-profile rounded-circle"
                                 src="https://cdn-icons-png.flaticon.com/512/4792/4792929.png">
                         </a>
@@ -405,6 +405,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ secure_asset('js/form-upload-file.js') }}"></script>
-    <script src="{{ secure_asset('js/user-task.js') }}"></script>
+    <script src="{{ config('app.url') . 'js/form-upload-file.js' }}"></script>
+    <script src="{{ config('app.url') . 'js/user-task.js' }}"></script>
 @endpush

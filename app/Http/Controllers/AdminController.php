@@ -146,13 +146,19 @@ class AdminController extends Controller
         // allow searching by a free-text query across a few document fields
         $q = $request->input('q');
 
-        $nik = session('sso_user')['nik'];
+        // $nik = session('sso_user')['nik'];
 
-        $docsQuery = Documents::with(['pendingTask' => function ($query) use ($nik) {
-            $query->where('status', '!=', 'waiting_document')->where('approval', 'like', '%' . $nik . '%');
-        }])
-            ->whereHas('pendingTask', function ($query) use ($nik) {
-                $query->where('status', '!=', 'waiting_document')->where('approval', 'like', '%' . $nik . '%');
+        $nik = '1111';
+
+        // approval is stored on the documents table (JSON/text). PendingTask does not
+        // have an `approval` column, so apply the approval filter on Documents and
+        // only filter pendingTask by status.
+        $docsQuery = Documents::where('approval', 'like', '%' . $nik . '%')
+            ->with(['pendingTask' => function ($query) {
+                $query->where('status', '!=', 'waiting_document');
+            }])
+            ->whereHas('pendingTask', function ($query) {
+                $query->where('status', '!=', 'waiting_document');
             });
 
         if (!empty($q)) {

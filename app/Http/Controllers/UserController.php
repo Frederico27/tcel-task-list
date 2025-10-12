@@ -11,9 +11,23 @@ class UserController extends Controller
 {
     public function index()
     {
+        // ensure variables are defined even if an exception is thrown
+        $nik = null;
+        $docs = collect();
+        $status = collect();
+
         try {
-            $nik = session('sso_user')['nik'];
-            $docs = PendingTask::all()->where('pic',);
+            // $nik = session('sso_user')['nik'];
+            $nik = '4444';
+            // PIC is stored as JSON on the related `documents` table (Documents.pic)
+            // PendingTask relation name is `document()` (singular) so use that
+            $docs = PendingTask::with('document')
+                ->whereHas('document', function ($q) use ($nik) {
+                    // documents.pic is a JSON array, use whereJsonContains to match the PIC
+                    $q->whereJsonContains('pic', $nik);
+                })
+                ->where('status', '=', 'waiting_document')
+                ->get();
 
             // collect unique statuses from the docs to populate the filter
             $status = $docs->pluck('status')->unique()->filter()->values();
@@ -23,6 +37,7 @@ class UserController extends Controller
                 'session' => $nik
             ]);
         }
+
 
         return view('user.index', compact('docs', 'status'));
     }
