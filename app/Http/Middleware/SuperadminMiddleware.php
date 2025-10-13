@@ -18,7 +18,7 @@ class SuperadminMiddleware
 
         $sso_data = session('sso_user');
 
-        if ($sso_data['nik'] != config('services.e-portal.superadmin_nik')) {
+        if ($sso_data['nik'] != config('services.e-portal.admin_nik')) {
             return response("You are not authorized to access this resource.", 401);
         }
 
