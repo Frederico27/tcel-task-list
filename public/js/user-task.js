@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
             docIdInput.value = docId;
 
             // Update form action sesuai format route
-            uploadForm.action = "{{ url('user') }}/" + docId + "/upload";
+            uploadForm.action = "user/" + docId + "/upload";
 
             // Show modal
             $('#uploadModal').modal('show');

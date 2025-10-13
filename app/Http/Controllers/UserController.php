@@ -26,7 +26,6 @@ class UserController extends Controller
                     // documents.pic is a JSON array, use whereJsonContains to match the PIC
                     $q->whereJsonContains('pic', $nik);
                 })
-                ->where('status', '=', 'waiting_document')
                 ->get();
 
             // collect unique statuses from the docs to populate the filter

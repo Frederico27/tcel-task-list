@@ -270,8 +270,10 @@
                                                         data-rejection="{{ $doc->rejected_reason ?? '' }}">
                                                         <span class="badge badge-danger">Rejected</span>
                                                     </a>
-                                                @elseif(in_array($s, ['waiting_document', 'waiting', 'pending', 'waiting_approval']))
-                                                    <span class="badge badge-warning">Waiting</span>
+                                                @elseif($s == 'waiting_document')
+                                                    <span class="badge badge-warning">Waiting Document</span>
+                                                @elseif($s == 'waiting_approval')
+                                                    <span class="badge badge-info">In Review</span>
                                                 @elseif($s == 'approved')
                                                     <span class="badge badge-success">Approved</span>
                                                 @else
