@@ -7,7 +7,6 @@ use App\Models\PendingTask;
 use App\Models\TypePeriod;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -150,9 +149,6 @@ class AdminController extends Controller
 
         // $nik = '1111';
 
-        // approval is stored on the documents table (JSON/text). PendingTask does not
-        // have an `approval` column, so apply the approval filter on Documents and
-        // only filter pendingTask by status.
         $docsQuery = Documents::where('approval', 'like', '%' . $nik . '%')
             ->with(['pendingTask' => function ($query) {
                 $query->where('status', '!=', 'waiting_document');

@@ -10,7 +10,7 @@ Route::get('/', function () {
 //make group route with middleware sso.auth
 Route::middleware(['sso.auth'])->group(function () {
     //Added routes for admin
-    Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index');
+    Route::get('/admin', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.index')->middleware('superadmin');
     Route::get('/admin/task', [App\Http\Controllers\AdminController::class, 'taskList'])->name('admin.taskList');
     Route::post('/admin/approve/{id}', [App\Http\Controllers\AdminController::class, 'approveDocument'])->name('admin.approveDocument');
     Route::post('/admin/reject/{id}', [App\Http\Controllers\AdminController::class, 'rejectDocument'])->name('admin.rejectDocument');

@@ -32,15 +32,9 @@ class SsoAuthMiddleware
             ->withHeaders($headers)
             ->get($url);
 
-        // Log::info('Response SSO_TCEL: ' . $response);
-        // $sso_data = $response->json();
+        Log::info('Response SSO_TCEL: ' . $response);
+        $sso_data = $response->json();
 
-        $sso_data = [
-            'success' => true,
-            'data' => [
-                'nik' => 92104
-            ]
-        ];
 
         if (!$sso_data) {
             return response("You are not authorized to access this resource.", 401);
