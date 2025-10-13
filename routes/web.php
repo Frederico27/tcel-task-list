@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect('/admin');
+    return redirect('https://e-portal.telkomcel.tl/app/ext/tasklist/audit/admin');
 });
 
 
