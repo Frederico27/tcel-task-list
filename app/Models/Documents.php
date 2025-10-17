@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Documents extends Model
 {
+    use SoftDeletes;
     protected $table = 'documents';
     protected $primaryKey = 'id_documents';
     protected $keyType = 'int';
@@ -16,6 +18,10 @@ class Documents extends Model
         'pic',
         'approval',
         'creating_task',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'remarks'
     ];
 
     // Relation to TypePeriod

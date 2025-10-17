@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class SuperadminMiddleware
+class UserMiddleware
 {
     /**
      * Handle an incoming request.
@@ -15,7 +15,6 @@ class SuperadminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-
         $sso_data = session('sso_user');
 
         if (!$sso_data) {
@@ -23,8 +22,8 @@ class SuperadminMiddleware
             return response("You are not authorized to access this resource.", 401);
         }
 
-        if (!in_array(261, $sso_data['treemenuid'])) {
-            return redirect('https://e-portal.telkomcel.tl/app/ext/tasklist/audit/user');
+        if (!in_array(260, $sso_data['treemenuid'])) {
+            return redirect('https://e-portal.telkomcel.tl/app/ext/tasklist/audit/admin');
         }
         return $next($request);
     }

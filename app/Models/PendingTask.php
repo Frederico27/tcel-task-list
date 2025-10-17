@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PendingTask extends Model
 {
+
+    use SoftDeletes;
     protected $table = 'pending_task';
     protected $primaryKey = 'id_pending_task';
 
@@ -18,6 +21,8 @@ class PendingTask extends Model
         'periode_date',
         'status',
         'rejected_reason',
+        'rejected_by',
+        'approved_by'
     ];
 
     public function document()

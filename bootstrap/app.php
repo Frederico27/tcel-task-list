@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'sso.auth' => SsoAuthMiddleware::class,
             'superadmin' => SuperadminMiddleware::class,
+            'admin' => App\Http\Middleware\AdminMiddleware::class,
+            'admin.task' => App\Http\Middleware\AdminTaskMiddleware::class,
+            'user' => App\Http\Middleware\UserMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

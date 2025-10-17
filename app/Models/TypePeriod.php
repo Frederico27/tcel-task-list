@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TypePeriod extends Model
 {
+    use SoftDeletes;
     protected $table = 'documents_period';
     protected $primaryKey = 'id_docu_period';
     protected $keyType = 'int';

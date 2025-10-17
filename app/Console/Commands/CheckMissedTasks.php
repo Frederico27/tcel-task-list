@@ -34,23 +34,21 @@ class CheckMissedTasks extends Command
                             $dayName = trim($dayName);
                             if ($dayName === '') continue;
 
-                            if (strtolower($dayName)) {
-                                // Start from the most recent Thursday (on or before today)
-                                $currentThursday = $this->getNextOrSameWeekday($today, 'thursday');
-                                if ($currentThursday->gt($today)) {
-                                    $currentThursday->subWeek(); // Go to previous Thursday if currentThursday is in the future
-                                }
+                            // Start from the most recent occurrence of the specified weekday (on or before today)
+                            $currentWeekday = $this->getNextOrSameWeekday($today, $dayName);
+                            if ($currentWeekday->gt($today)) {
+                                $currentWeekday->subWeek(); // Go to previous week if the calculated date is in the future
+                            }
 
-                                // Iterate backward to the start of the year
-                                $startOfYear = Carbon::create($today->year, 1, 1)->startOfDay();
-                                while ($currentThursday->gte($startOfYear)) {
-                                    // Create task for this Thursday if it doesn't exist
-                                    $creationDate = $currentThursday->copy()->subDays($creatingTaskDays);
-                                    $this->createTaskIfNotExists($doc->id_documents, $currentThursday);
+                            // Iterate backward to the start of the year
+                            $startOfYear = Carbon::create($today->year, 1, 1)->startOfDay();
+                            while ($currentWeekday->gte($startOfYear)) {
+                                // Create task for this weekday if it doesn't exist
+                                $creationDate = $currentWeekday->copy()->subDays($creatingTaskDays);
+                                $this->createTaskIfNotExists($doc->id_documents, $currentWeekday);
 
-                                    // Move to the previous Thursday
-                                    $currentThursday->subWeek();
-                                }
+                                // Move to the previous week
+                                $currentWeekday->subWeek();
                             }
                         }
                         break;

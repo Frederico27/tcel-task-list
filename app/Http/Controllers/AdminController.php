@@ -16,7 +16,9 @@ class AdminController extends Controller
     {
 
         try {
-            $docs = Documents::all();
+            // retrieve documents only approval
+            $docs = Documents::all()
+                ->where('approval', '=', session('sso_user')['nik'] ?? 'null');
         } catch (Exception $e) {
             Log::error('Failed to load data', [
                 'error' => $e->getMessage()
@@ -38,6 +40,7 @@ class AdminController extends Controller
                 'periods' => 'sometimes|array',
                 // Set default value for periods if not present
                 'creating_task' => 'required|string|max:255',
+                'created_by' => 'required|string|max:255',
             ]);
 
             if (!$request->input('periods')) {
@@ -49,6 +52,7 @@ class AdminController extends Controller
             $document->pic = json_encode($request->input('pic'));
             $document->approval = json_encode($request->input('approval'));
             $document->creating_task = $request->input('creating_task');
+            $document->created_by = session('sso_user')['fullname'] ?? 'null';
             $document->save();
         } catch (Exception $e) {
             // Log the error with context
@@ -97,6 +101,7 @@ class AdminController extends Controller
             $document->pic = $request->input('pic');
             $document->approval = $request->input('approval');
             $document->creating_task = $request->input('creating_task');
+            $document->updated_by = session('sso_user')['fullname'] ?? 'null';
             $document->save();
         } catch (Exception $e) {
             Log::error('Failed to edit document', [
@@ -131,6 +136,7 @@ class AdminController extends Controller
     {
         try {
             $document = Documents::findOrFail($id);
+            $document->deleted_by = session('sso_user')['fullname'] ?? 'null';
             $document->delete();
         } catch (Exception $e) {
             Log::error("Failed to delete document", [
@@ -232,6 +238,7 @@ class AdminController extends Controller
         try {
             $task = PendingTask::findOrFail($id);
             $task->status = 'rejected';
+            $task->rejected_by = session('sso_user')['fullname'] ?? 'null';
 
             // Save rejection reason if provided
             $reason = $request->input('rejection_reason');
@@ -275,5 +282,181 @@ class AdminController extends Controller
         } else {
             return response()->json(['error' => 'Failed to fetch employees'], $response->status());
         }
+    }
+
+    /**
+     * Generate pending tasks for a document from year start to today
+     */
+    public function generateDocumentTask($id)
+    {
+        try {
+            $document = Documents::with('periods')->findOrFail($id);
+            $today = now()->startOfDay();
+            $yearStart = now()->startOfYear();
+            $creatingTaskDays = (int) ($document->creating_task ?? 0);
+            $tasksCreated = 0;
+
+            foreach ($document->periods as $period) {
+                $values = $this->normalizePeriodValue($period->period_value);
+
+                switch ($period->period_type) {
+                    case 'daily':
+                        // Generate tasks for every day from year start to today
+                        $currentDate = $yearStart->copy();
+                        while ($currentDate->lte($today)) {
+                            if ($this->createTaskIfNotExists($document->id_documents, $currentDate->copy())) {
+                                $tasksCreated++;
+                            }
+                            $currentDate->addDay();
+                        }
+                        break;
+
+                    case 'weekly':
+                        foreach ($values as $dayName) {
+                            $dayName = trim($dayName);
+                            if ($dayName === '') continue;
+
+                            // Get first occurrence of this weekday from year start
+                            $occurrence = $this->getNextOrSameWeekday($yearStart->copy(), $dayName);
+
+                            // Generate tasks for all occurrences from year start to today
+                            while ($occurrence->lte($today)) {
+                                $creationDate = $occurrence->copy()->subDays($creatingTaskDays);
+
+                                // Create task if the creation date has passed
+                                if ($today->gte($creationDate)) {
+                                    if ($this->createTaskIfNotExists($document->id_documents, $occurrence->copy())) {
+                                        $tasksCreated++;
+                                    }
+                                }
+
+                                $occurrence->addWeek();
+                            }
+                        }
+                        break;
+
+                    case 'yearly':
+                        foreach ($values as $dateString) {
+                            $dateString = trim($dateString);
+                            if ($dateString === '') continue;
+
+                            // Try to parse the date for current year
+                            try {
+                                $occurrence = \Carbon\Carbon::createFromFormat('j F Y', $dateString . ' ' . $today->year);
+                            } catch (\Exception $e) {
+                                try {
+                                    $occurrence = \Carbon\Carbon::createFromFormat('d F Y', $dateString . ' ' . $today->year);
+                                } catch (\Exception $e2) {
+                                    continue;
+                                }
+                            }
+
+                            // Create task for any date in the current year (past or future)
+                            if ($occurrence->year == $today->year) {
+                                if ($this->createTaskIfNotExists($document->id_documents, $occurrence)) {
+                                    $tasksCreated++;
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $tasksCreated . ' document task(s) generated successfully.',
+                    'tasks_created' => $tasksCreated
+                ]);
+            }
+
+            return redirect()->back()->with('success', $tasksCreated . ' document task(s) generated successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to generate document task', [
+                'error' => $e->getMessage(),
+                'document_id' => $id
+            ]);
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to generate document task.'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to generate document task.');
+        }
+    }
+
+    /**
+     * Helper method to normalize period value
+     */
+    private function normalizePeriodValue($value)
+    {
+        if (is_array($value)) return $value;
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+
+            // fallback: split comma or semicolon
+            $parts = preg_split('/[\,\;]+/', $value);
+            return array_map('trim', array_filter($parts, fn($v) => $v !== ''));
+        }
+
+        return [];
+    }
+
+    /**
+     * Helper method to get next or same weekday
+     */
+    private function getNextOrSameWeekday($reference, $weekday)
+    {
+        $map = [
+            'sunday' => 0,
+            'monday' => 1,
+            'tuesday' => 2,
+            'wednesday' => 3,
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6
+        ];
+
+        $key = strtolower($weekday);
+        if (!isset($map[$key])) return $reference->copy()->startOfDay();
+
+        $target = $map[$key];
+        $ref = $reference->copy()->startOfDay();
+
+        $daysToAdd = ($target - $ref->dayOfWeek + 7) % 7;
+        return $ref->copy()->addDays($daysToAdd);
+    }
+
+    /**
+     * Helper method to create task if not exists
+     * Returns true if task was created, false if it already existed
+     */
+    private function createTaskIfNotExists($documentId, $date)
+    {
+        $dateString = $date->toDateString();
+
+        $exists = PendingTask::where('id_documents', $documentId)
+            ->whereDate('periode_date', $dateString)
+            ->exists();
+
+        if (!$exists) {
+            PendingTask::create([
+                'id_documents' => $documentId,
+                'periode_date' => $dateString,
+                'upload' => '',
+                'status' => 'waiting_document',
+            ]);
+
+            return true;
+        }
+
+        return false;
     }
 }

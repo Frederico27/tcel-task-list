@@ -276,9 +276,9 @@ $(function () {
                         var normalizedId = String(id || '').replace(/^\/+/, '');
                         // prefer origin-based absolute URL; fall back to root-relative path
                         if (window.location && window.location.origin) {
-                            form.action = window.location.origin + '/admin/' + normalizedId;
+                            form.action = window.location.origin + 'app/ext/tasklist/audit/admin/' + normalizedId;
                         } else {
-                            form.action = '/admin/' + normalizedId;
+                            form.action = 'app/ext/tasklist/audit/admin/' + normalizedId;
                         }
                     }
                     // If the selected period type is Yearly, populate the edit datepicker input

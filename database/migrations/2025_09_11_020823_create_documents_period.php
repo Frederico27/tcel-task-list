@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_documents');
             $table->enum('period_type', ['daily', 'weekly', 'yearly']);
             $table->json('period_value');
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('id_documents')

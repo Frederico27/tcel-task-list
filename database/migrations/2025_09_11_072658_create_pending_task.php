@@ -23,7 +23,9 @@ return new class extends Migration
                 'rejected'
             ])->default('waiting_document');
             $table->string('rejected_reason')->nullable();
+            $table->string('rejected_by')->nullable();
             $table->string('approved_by')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('id_documents')

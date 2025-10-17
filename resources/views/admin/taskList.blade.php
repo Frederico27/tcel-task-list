@@ -15,7 +15,7 @@
 
                 <!-- Topbar Application Name -->
                 <div class="d-none d-sm-inline-block ml-md-3 my-2 my-md-0">
-                    <a href="{{ config('app.url') . '/task' }}">
+                    <a href="{{ config('app.url') . 'task' }}">
                         <h5 class="text-danger font-weight-bold m-0">
                             TASK LIST TCEL
                         </h5>

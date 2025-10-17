@@ -17,6 +17,11 @@ return new class extends Migration
             $table->json('pic');
             $table->json('approval');
             $table->integer('creating_task');
+            $table->string('created_by');
+            $table->string('updated_by')->nullable();
+            $table->string('deleted_by')->nullable();
+            $table->string('remarks')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
