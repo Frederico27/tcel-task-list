@@ -45,7 +45,6 @@ class UserController extends Controller
     public function uploadDocument(Request $request, $id)
     {
 
-        dd($request->file('document_file'));
         try {
             $request->validate([
                 'document_file' => 'required|file|mimes:pdf,doc,docx|max:20480', // max 20MB
