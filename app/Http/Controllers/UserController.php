@@ -17,8 +17,8 @@ class UserController extends Controller
         $status = collect();
 
         try {
-            // $nik = session('sso_user')['nik'];
-            $nik = '4444';
+            $nik = session('sso_user')['nik'];
+            // $nik = '4444';
             // PIC is stored as JSON on the related `documents` table (Documents.pic)
             // PendingTask relation name is `document()` (singular) so use that
             $docs = PendingTask::with('document')
