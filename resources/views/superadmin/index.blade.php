@@ -242,7 +242,6 @@
                                         <th>Type Periods</th>
                                         <th>By Periods</th>
                                         <th>Creating Task Before</th>
-                                        <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -255,19 +254,6 @@
                                             <td>{{ $doc->periods['0']['period_value'] }}</td>
                                             <td>
                                                 {{ $doc->creating_task <= 1 ? $doc->creating_task . ' day' : $doc->creating_task . ' days' }}
-                                            </td>
-                                            <td class="text-center">
-                                                <a href="#" class="btn btn-sm btn-warning edit-btn"
-                                                    data-toggle="modal" data-target="#editTaskModal" title="Edit"
-                                                    data-id="{{ $doc->id_documents }}"
-                                                    data-type_document="{{ $doc->type_document }}"
-                                                    data-pic='{{ json_encode($doc->getPicArrayAttribute()) }}'
-                                                    data-approval='{{ json_encode($doc->getApprovalArrayAttribute()) }}'
-                                                    data-type_periods='{{ $doc->periods->first()->period_type ?? '' }}'
-                                                    data-periods='{{ json_encode($doc->periods->first() ? json_decode($doc->periods->first()->period_value, true) : []) }}'
-                                                    data-creating_task='{{ $doc->creating_task }}'>
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
                                             </td>
                                         </tr>
                                     @endforeach

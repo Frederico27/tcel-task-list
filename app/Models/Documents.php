@@ -21,7 +21,8 @@ class Documents extends Model
         'created_by',
         'updated_by',
         'deleted_by',
-        'remarks'
+        'remarks',
+        'deleted_at',
     ];
 
     // Relation to TypePeriod

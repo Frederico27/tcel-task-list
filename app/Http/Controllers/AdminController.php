@@ -16,9 +16,12 @@ class AdminController extends Controller
     {
 
         try {
-            // retrieve documents only approval
-            $docs = Documents::all()
-                ->where('approval', '=', session('sso_user')['nik'] ?? 'null');
+            // retrieve documents where pic or approval contains the NIK
+            $nik = session('sso_user')['nik'] ?? 'null';
+            $docs = Documents::where(function ($query) use ($nik) {
+                $query->where('pic', 'like', '%' . $nik . '%')
+                    ->orWhere('approval', 'like', '%' . $nik . '%');
+            })->get();
         } catch (Exception $e) {
             Log::error('Failed to load data', [
                 'error' => $e->getMessage()
@@ -52,6 +55,7 @@ class AdminController extends Controller
             $document->approval = json_encode($request->input('approval'));
             $document->creating_task = $request->input('creating_task');
             $document->created_by = session('sso_user')['fullname'] ?? 'null';
+            $document->deleted_at = null;
             $document->save();
         } catch (Exception $e) {
             // Log the error with context
