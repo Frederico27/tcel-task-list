@@ -39,8 +39,7 @@ class AdminController extends Controller
                 'type_periods' => 'required|string',
                 'periods' => 'sometimes|array',
                 // Set default value for periods if not present
-                'creating_task' => 'required|string|max:255',
-                'created_by' => 'required|string|max:255',
+                'creating_task' => 'required|string|max:255'
             ]);
 
             if (!$request->input('periods')) {
