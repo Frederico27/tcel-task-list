@@ -22,9 +22,12 @@ class AdminMiddleware
             return response("You are not authorized to access this resource.", 401);
         }
 
-        if (!in_array(258, $sso_data['treemenuid'])) {
+        $treemenuid_array = explode(',', $sso_data['treemenuid']);
+
+        if (!in_array(258, $treemenuid_array)) {
             return redirect('https://e-portal.telkomcel.tl/app/ext/tasklist/audit/user');
         }
+
         return $next($request);
     }
 }
