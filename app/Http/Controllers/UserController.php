@@ -44,17 +44,21 @@ class UserController extends Controller
     // upload document for a pending task
     public function uploadDocument(Request $request, $id)
     {
-
         try {
             $request->validate([
                 'document_file' => 'required|file|mimes:pdf,doc,docx|max:20480', // max 20MB
             ]);
 
             $task = PendingTask::findOrFail($id);
+
             $file = $request->file('document_file');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
-            $task->upload = 'uploads/' . $filename;
+
+            // Store in storage/app/uploads (not public)
+            $path = $file->storeAs('uploads', $filename);
+
+            // Save path in DB
+            $task->upload = $path;
             $task->status = 'waiting_approval';
             $task->save();
         } catch (Exception $e) {
@@ -63,7 +67,5 @@ class UserController extends Controller
                 'input' => $request->all()
             ]);
         }
-
-        return redirect()->back()->with('success', 'Document uploaded successfully.');
     }
 }

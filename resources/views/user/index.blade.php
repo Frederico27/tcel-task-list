@@ -166,7 +166,7 @@
                     <div class="topbar-divider d-none d-sm-block"></div>
 
                     <!-- Nav Item - User Information -->
-                   <li class="nav-item dropdown no-arrow">
+                    <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span
@@ -247,7 +247,7 @@
                                                 @if ($doc->upload)
                                                     @php
                                                         $ext = strtolower(pathinfo($doc->upload, PATHINFO_EXTENSION));
-                                                        $fileUrl = secure_asset($doc->upload); // karena kamu simpan langsung di public/uploads
+                                                        $fileUrl = route('docs.view', $doc->id); // Secure route to access the file
                                                     @endphp
 
                                                     @if ($ext === 'pdf')
@@ -260,6 +260,7 @@
                                                 @else
                                                     -
                                                 @endif
+
                                             </td>
 
 
@@ -322,7 +323,7 @@
             aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
-                    <form id="uploadForm" method="POST" action="{{ config('app.url') . "user/0/upload" }}"
+                    <form id="uploadForm" method="POST" action="{{ config('app.url') . 'user/0/upload' }}"
                         enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="doc_id" id="modal_doc_id">
@@ -384,8 +385,9 @@
     <!-- End of Content Wrapper -->
 
 
-        <!-- View-only Rejection Reason Modal for users -->
-    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel" aria-hidden="true">
+    <!-- View-only Rejection Reason Modal for users -->
+    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">

@@ -314,22 +314,26 @@
                                                                                         PATHINFO_EXTENSION,
                                                                                     ),
                                                                                 );
-                                                                                $fileUrl = url($task->upload); // karena kamu simpan langsung di public/uploads
+                                                                                $fileRoute = route(
+                                                                                    'tasks.viewDocument',
+                                                                                    $task->id,
+                                                                                );
                                                                             @endphp
 
                                                                             @if ($ext === 'pdf')
-                                                                                <a href="{{ $fileUrl }}"
+                                                                                <a href="{{ $fileRoute }}"
                                                                                     target="_blank">Preview PDF</a>
                                                                             @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
-                                                                                <a href="{{ $fileUrl }}"
+                                                                                <a href="{{ $fileRoute }}"
                                                                                     download>Download File</a>
                                                                             @else
-                                                                                <a href="{{ $fileUrl }}" download>See
+                                                                                <a href="{{ $fileRoute }}" download>See
                                                                                     File</a>
                                                                             @endif
                                                                         @else
                                                                             -
                                                                         @endif
+
                                                                     </td>
 
 

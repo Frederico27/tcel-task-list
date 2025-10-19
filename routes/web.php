@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,8 @@ Route::middleware(['sso.auth'])->group(function () {
 
     //Added routes for superadmin
     Route::get('/superadmin', [SuperAdminController::class, 'index'])->name('superadmin.index')->middleware('superadmin');
+    Route::get('/documents/{id}/view', [DocumentController::class, 'view'])->name('docs.view');
+
 
     // API route to fetch employees
     Route::get('/api/employees', [App\Http\Controllers\AdminController::class, 'apiEmployees'])->name('api.employees');
