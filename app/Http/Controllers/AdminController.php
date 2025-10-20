@@ -18,6 +18,8 @@ class AdminController extends Controller
         try {
             // retrieve documents where pic or approval contains the NIK
             $nik = session('sso_user')['nik'] ?? 'null';
+
+            // $nik = '1111';
             $docs = Documents::where(function ($query) use ($nik) {
                 $query->where('pic', 'like', '%' . $nik . '%')
                     ->orWhere('approval', 'like', '%' . $nik . '%');

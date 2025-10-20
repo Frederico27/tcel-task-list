@@ -22,35 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    const statusFilter = document.getElementById('statusFilter');
-    const clearBtn = document.getElementById('clearFilterBtn');
-    const tableBody = document.querySelector('#dataTable tbody');
-    if (!statusFilter || !tableBody) return;
-
-    function applyFilter() {
-        const val = statusFilter.value;
-        const rows = tableBody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const s = (row.getAttribute('data-status') || '').toLowerCase();
-            if (val === 'all' || val === s) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-
-    statusFilter.addEventListener('change', applyFilter);
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            statusFilter.value = 'all';
-            applyFilter();
-        });
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function () {
     const viewModalEl = document.getElementById('viewRejectionModal');
     if (!viewModalEl) return;
     const $viewModal = window.jQuery ? window.jQuery(viewModalEl) : null;
@@ -70,63 +41,66 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
     const statusFilter = document.getElementById('statusFilter');
     const clearBtn = document.getElementById('clearFilterBtn');
-    const tableBody = document.querySelector('#dataTable tbody');
     const searchInput = document.getElementById('tableSearch');
-    if (!statusFilter || !tableBody) return;
-
-    function rowMatchesSearch(row, term) {
-        if (!term) return true;
-        term = term.toLowerCase();
-        // check relevant columns: document name, period, approved_by, and status text
-        const cols = [0, 1, 4, 3]; // index positions in the row
-        for (let i of cols) {
-            const cell = row.children[i];
-            if (!cell) continue;
-            const txt = (cell.textContent || '').toLowerCase();
-            if (txt.indexOf(term) !== -1) return true;
-        }
-        return false;
-    }
-
-    function applyFilter() {
-        const statusVal = statusFilter.value;
-        const searchTerm = (searchInput && searchInput.value) ? searchInput.value.trim().toLowerCase() : '';
-        const rows = tableBody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const s = (row.getAttribute('data-status') || '').toLowerCase();
-            const statusOk = (statusVal === 'all' || statusVal === s);
-            const searchOk = rowMatchesSearch(row, searchTerm);
-            if (statusOk && searchOk) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
+    
+    // Initialize DataTable with client-side pagination
+    const table = $('#dataTable').DataTable({
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        order: [[2, 'desc']], // Sort by Upload column (index 2) descending by default
+        language: {
+            search: "",
+            searchPlaceholder: "Search in table...",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "No entries available",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
             }
-        });
-    }
+        },
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6">>rtip'
+    });
 
-    // debounce helper
-    function debounce(fn, wait) {
-        let t;
-        return function (...args) {
-            clearTimeout(t);
-            t = setTimeout(() => fn.apply(this, args), wait);
-        };
-    }
+    if (!statusFilter) return;
 
-    const debouncedApply = debounce(applyFilter, 200);
+    // Custom filter function for status
+    $.fn.dataTable.ext.search.push(
+        function(settings, data, dataIndex) {
+            const statusVal = statusFilter.value;
+            const row = table.row(dataIndex).node();
+            const rowStatus = (row.getAttribute('data-status') || '').toLowerCase();
+            
+            // Check status filter
+            if (statusVal === 'all' || statusVal === rowStatus) {
+                return true;
+            }
+            return false;
+        }
+    );
 
-    statusFilter.addEventListener('change', applyFilter);
+    // Apply filter when status dropdown changes
+    statusFilter.addEventListener('change', function() {
+        table.draw();
+    });
+
+    // Clear filter button
     if (clearBtn) {
         clearBtn.addEventListener('click', function (e) {
             e.preventDefault();
             statusFilter.value = 'all';
             if (searchInput) searchInput.value = '';
-            applyFilter();
+            table.search('').draw();
         });
     }
 
+    // Custom search input integration
     if (searchInput) {
-        searchInput.addEventListener('input', debouncedApply);
+        searchInput.addEventListener('input', function() {
+            table.search(this.value).draw();
+        });
     }
 });
-

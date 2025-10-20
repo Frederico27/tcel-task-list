@@ -5,16 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\PendingTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Vinkla\Hashids\Facades\Hashids;
 
 class DocumentController extends Controller
 {
 
     public function view($id)
     {
+        $id = Hashids::decode($id)[0];
         $doc = PendingTask::findOrFail($id);
 
+
         // Check if file exists
-        if (!$doc->upload || !Storage::exists($doc->upload)) {
+        if (!$doc->upload) {
             abort(404, 'File not found.');
         }
 
@@ -24,7 +27,7 @@ class DocumentController extends Controller
 
         if ($ext === 'pdf') {
             // Inline preview
-            return response()->file(storage_path('app/' . $doc->upload));
+            return response()->file(storage_path('app/public/' . $doc->upload));
         }
 
         // Force download for other types

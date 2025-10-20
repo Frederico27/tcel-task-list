@@ -55,7 +55,8 @@ class UserController extends Controller
             $filename = time() . '_' . $file->getClientOriginalName();
 
             // Store in storage/app/uploads (not public)
-            $path = $file->storeAs('uploads', $filename);
+            $path = $file->storeAs('uploads', $filename, 'public');
+
 
             // Save path in DB
             $task->upload = $path;

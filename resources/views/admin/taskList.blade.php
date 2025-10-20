@@ -314,10 +314,8 @@
                                                                                         PATHINFO_EXTENSION,
                                                                                     ),
                                                                                 );
-                                                                                $fileRoute = route(
-                                                                                    'tasks.viewDocument',
-                                                                                    $task->id,
-                                                                                );
+                                                                                $id = Hashids::encode($task->id_pending_task);
+                                                                                $fileRoute = config('app.url') . "documents/$id/view";
                                                                             @endphp
 
                                                                             @if ($ext === 'pdf')
@@ -415,6 +413,54 @@
     </div>
 
     @push('scripts')
+        <!-- DataTables JavaScript -->
+        <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
+        <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
+        
+        <script>
+            // Initialize DataTable for admin task list with child row support
+            $(document).ready(function() {
+                var table = $('#dataTable').DataTable({
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    order: [[0, 'asc']], // Sort by Type Document column
+                    language: {
+                        search: "Search:",
+                        lengthMenu: "Show _MENU_ entries",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)",
+                        paginate: {
+                            first: "First",
+                            last: "Last",
+                            next: "Next",
+                            previous: "Previous"
+                        }
+                    },
+                    // Custom sorting to handle child rows properly
+                    createdRow: function(row, data, dataIndex) {
+                        // Mark child rows so they stay with their parent
+                        if ($(row).hasClass('child-row')) {
+                            $(row).attr('data-child-row', 'true');
+                        }
+                    },
+                    drawCallback: function(settings) {
+                        // After each draw, ensure child rows are hidden by default
+                        $('.child-row').hide();
+                        $('.toggle-child').each(function() {
+                            $(this).text('Details (+)');
+                            $(this).attr('aria-expanded', 'false');
+                        });
+                    }
+                });
+                
+                // Handle child row visibility when page changes
+                table.on('page.dt', function() {
+                    $('.child-row').hide();
+                });
+            });
+        </script>
+        
         <script src="{{ config('app.url') . 'js/admin-task.js' }}"></script>
     @endpush
 @endsection

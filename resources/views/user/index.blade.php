@@ -246,8 +246,9 @@
                                             <td>
                                                 @if ($doc->upload)
                                                     @php
+                                                        $id = Hashids::encode($doc->id_pending_task);
                                                         $ext = strtolower(pathinfo($doc->upload, PATHINFO_EXTENSION));
-                                                        $fileUrl = route('docs.view', $doc->id); // Secure route to access the file
+                                                        $fileUrl = config('app.url') . "documents/$id/view"; // Secure route to access the file
                                                     @endphp
 
                                                     @if ($ext === 'pdf')
@@ -409,6 +410,12 @@
 @endsection
 
 @push('scripts')
+    <!-- DataTables JavaScript -->
+    <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
+    <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
+    
     <script src="{{ config('app.url') . 'js/form-upload-file.js' }}"></script>
     <script src="{{ config('app.url') . 'js/user-task.js' }}"></script>
 @endpush
+
+

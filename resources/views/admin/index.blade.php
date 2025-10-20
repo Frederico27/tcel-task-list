@@ -580,5 +580,34 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    
+    <!-- DataTables JavaScript -->
+    <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
+    <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
+    
     <script src="{{ config('app.url') . 'js/select2code.js' }}"></script>
+    
+    <script>
+        // Initialize DataTable for admin index
+        $(document).ready(function() {
+            $('#dataTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                order: [[0, 'asc']], // Sort by Type Documents column
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        });
+    </script>
 @endpush
