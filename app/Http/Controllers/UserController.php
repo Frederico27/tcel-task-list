@@ -25,7 +25,7 @@ class UserController extends Controller
                 ->whereHas('document', function ($q) use ($nik) {
                     // documents.pic is a JSON array, use whereJsonContains to match the PIC
                     $q->whereJsonContains('pic', $nik);
-                })
+                })->orderBy('created_at', 'desc')
                 ->get();
 
             // collect unique statuses from the docs to populate the filter
@@ -68,5 +68,7 @@ class UserController extends Controller
                 'input' => $request->all()
             ]);
         }
+
+        return redirect()->back()->with('success', 'Document uploaded successfully.');
     }
 }
