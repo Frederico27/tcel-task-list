@@ -1,6 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Admin Dashboard')
-
+@section('title', 'SuperAdmin Dashboard')
 
 @section('content')
 
@@ -49,9 +48,9 @@
                             </form>
                         </div>
                     </li>
-
+                    {{-- 
                     <!-- Nav Item - Alerts -->
-                    {{-- <li class="nav-item dropdown no-arrow mx-1">
+                    <li class="nav-item dropdown no-arrow mx-1">
                         <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-bell fa-fw"></i>
@@ -206,42 +205,31 @@
             <!-- Begin Page Content -->
             <div class="container-fluid">
 
-                <!-- Display success/error messages -->
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                @endif
-                
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                @endif
-
                 <!-- DataTales Example -->
                 <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-danger">Data Task</h6>
-                    </div>
                     <div class="card-body">
+                        {{-- Bulk approve form (will be populated with selected ids on submit) --}}
+                        {{-- Search form --}}
+                        <form method="GET" action="{{ config('app.url') . 'admin/task' }}" class="form-inline mb-3">
+                            <div class="input-group">
+                                <input name="q" type="text" class="form-control" placeholder="Search documents..."
+                                    value="{{ request('q') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="table-responsive">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
                                 style="color: black">
                                 <thead>
                                     <tr>
-                                        <th>Type Documents</th>
+                                        <th>Type Document</th>
                                         <th>PIC</th>
                                         <th>Approval</th>
-                                        <th>Type Periods</th>
-                                        <th>By Periods</th>
                                         <th>Creating Task Before</th>
+                                        <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -249,11 +237,109 @@
                                         <tr>
                                             <td>{{ $doc->type_document }}</td>
                                             <td>{{ $doc->pic }}</td>
-                                            <td>{{ $doc->approval }}</td>
-                                            <td>{{ $doc->periods['0']['period_type'] }}</td>
-                                            <td>{{ $doc->periods['0']['period_value'] }}</td>
                                             <td>
-                                                {{ $doc->creating_task <= 1 ? $doc->creating_task . ' day' : $doc->creating_task . ' days' }}
+                                                @if (strtolower($doc->approval) == 'approved')
+                                                    <span class="badge badge-success">Approved</span>
+                                                @elseif(strtolower($doc->approval) == 'rejected')
+                                                    <span class="badge badge-danger">Rejected</span>
+                                                @elseif(in_array(strtolower($doc->approval), ['waiting_approval', 'waiting', 'pending']))
+                                                    <span class="badge badge-warning">Waiting</span>
+                                                @else
+                                                    <span class="badge badge-secondary">{{ $doc->approval }}</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $doc->creating_task }}</td>
+                                            <td class="text-center align-middle">
+                                                <button type="button" class="btn btn-sm btn-info toggle-child"
+                                                    data-child="#child-row-{{ $loop->index }}" aria-expanded="false">
+                                                    Details (+)
+                                                </button>
+                                            </td>
+
+
+                                        </tr>
+
+                                        {{-- Child row (mockup) - design similar to main row but shown below as an expandable/detail area --}}
+                                        <tr id="child-row-{{ $loop->index }}" class="child-row bg-light"
+                                            style="display:none;">
+                                            <td colspan="6">
+                                                <div class="p-3">
+                                                    <h6 class="font-weight-bold mb-2">Document Details</h6>
+
+                                                    <table class="table table-sm table-bordered mb-0"
+                                                        style="color: black; background: #fff;">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Name Document</th>
+                                                                <th>Period</th>
+                                                                <th>Upload</th>
+                                                                <th>Status</th>
+                                                                <th>Approved By</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach ($doc->pendingTask as $task)
+                                                                <tr data-task-id="{{ $task->id_pending_task }}">
+                                                                    <td>{{ $doc->type_document }}</td>
+                                                                    <td>{{ $task->periode_date }}</td>
+                                                                    <td>
+                                                                        @if ($task->upload)
+                                                                            @php
+                                                                                $ext = strtolower(
+                                                                                    pathinfo(
+                                                                                        $task->upload,
+                                                                                        PATHINFO_EXTENSION,
+                                                                                    ),
+                                                                                );
+                                                                                $id = Hashids::encode($task->id_pending_task);
+                                                                                $fileRoute = config('app.url') . "documents/$id/view";
+                                                                            @endphp
+
+                                                                            @if ($ext === 'pdf')
+                                                                                <a href="{{ $fileRoute }}"
+                                                                                    target="_blank">Preview PDF</a>
+                                                                            @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
+                                                                                <a href="{{ $fileRoute }}"
+                                                                                    download>Download File</a>
+                                                                            @else
+                                                                                <a href="{{ $fileRoute }}" download>See
+                                                                                    File</a>
+                                                                            @endif
+                                                                        @else
+                                                                            -
+                                                                        @endif
+
+                                                                    </td>
+
+
+                                                                    <td class="task-status @if ($task->status == 'rejected') clickable-rejection @endif"
+                                                                        data-rejection="{{ $task->rejected_reason ?? '' }}">
+                                                                        @php $s = strtolower($task->status ?? ''); @endphp
+                                                                        @if ($s == 'rejected')
+                                                                            <a href="#" class="show-rejection"
+                                                                                data-rejection="{{ $task->rejected_reason ?? '' }}">
+                                                                                <span
+                                                                                    class="badge badge-danger">Rejected</span>
+                                                                            </a>
+                                                                        @elseif(in_array($s, ['waiting_approval', 'waiting', 'pending']))
+                                                                            <span class="badge badge-warning">Waiting
+                                                                                Approval</span>
+                                                                        @elseif($s == 'approved')
+                                                                            <span
+                                                                                class="badge badge-success">Approved</span>
+                                                                        @else
+                                                                            <span
+                                                                                class="badge badge-secondary">{{ $task->status }}</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="text-center task-approved-by">
+                                                                        {{ $task->approved_by ?? '-' }}</td>
+                                                                </tr>
+                                                            @endforeach
+
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -280,13 +366,79 @@
         <!-- End of Footer -->
 
     </div>
-    <!-- End of Content Wrapper -->
+
+    @push('scripts')
+        <!-- DataTables JavaScript -->
+        <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
+        <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
+        
+        <script>
+            // Initialize DataTable for admin task list with child row support
+            $(document).ready(function() {
+                var table = $('#dataTable').DataTable({
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    order: [[0, 'asc']], // Sort by Type Document column
+                    language: {
+                        search: "Search:",
+                        lengthMenu: "Show _MENU_ entries",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries available",
+                        infoFiltered: "(filtered from _MAX_ total entries)",
+                        paginate: {
+                            first: "First",
+                            last: "Last",
+                            next: "Next",
+                            previous: "Previous"
+                        }
+                    },
+                    // Custom sorting to handle child rows properly
+                    createdRow: function(row, data, dataIndex) {
+                        // Mark child rows so they stay with their parent
+                        if ($(row).hasClass('child-row')) {
+                            $(row).attr('data-child-row', 'true');
+                        }
+                    },
+                    drawCallback: function(settings) {
+                        // After each draw, ensure child rows are hidden by default
+                        $('.child-row').hide();
+                        $('.toggle-child').each(function() {
+                            $(this).text('Details (+)');
+                            $(this).attr('aria-expanded', 'false');
+                        });
+                    }
+                });
+                
+                // Handle child row visibility when page changes
+                table.on('page.dt', function() {
+                    $('.child-row').hide();
+                });
+            });
+        </script>
+        
+        <script src="{{ config('app.url') . 'js/admin-task.js' }}"></script>
+    @endpush
 @endsection
 
 @push('scripts')
-    <!-- include bootstrap-datepicker CSS/JS (CDN) and initialize the multi pickers -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <script src="{{ config('app.url') . 'js/select2code.js' }}"></script>
+    <!-- View-only Rejection Reason Modal -->
+    <div class="modal fade" id="viewRejectionModal" tabindex="-1" role="dialog" aria-labelledby="viewRejectionLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rejection Reason</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="viewRejectionText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endpush
