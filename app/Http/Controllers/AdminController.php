@@ -17,9 +17,9 @@ class AdminController extends Controller
 
         try {
             // retrieve documents where pic or approval contains the NIK
-            // $nik = session('sso_user')['nik'] ?? 'null';
+            $nik = session('sso_user')['nik'] ?? 'null';
 
-            $nik = '1111';
+            // $nik = '1111';
             $docs = Documents::where(function ($query) use ($nik) {
                 $query->where('pic', 'like', '%' . $nik . '%')
                     ->orWhere('approval', 'like', '%' . $nik . '%');
@@ -156,9 +156,9 @@ class AdminController extends Controller
         // allow searching by a free-text query across a few document fields
         $q = $request->input('q');
 
-        // $nik = session('sso_user')['nik'];
+        $nik = session('sso_user')['nik'];
 
-        $nik = '1111';
+        // $nik = '1111';
 
         $docsQuery = Documents::where('approval', 'like', '%' . $nik . '%')
             ->with(['pendingTask' => function ($query) {
