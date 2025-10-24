@@ -244,20 +244,30 @@
                                             <td>{{ $doc->document->type_document }}</td>
                                             <td>{{ $doc->periode_date }}</td>
                                             <td>
-                                                @if ($doc->upload)
-                                                    @php
-                                                        $id = Hashids::encode($doc->id_pending_task);
-                                                        $ext = strtolower(pathinfo($doc->upload, PATHINFO_EXTENSION));
-                                                        $fileUrl = config('app.url') . "documents/$id/view"; // Secure route to access the file
-                                                    @endphp
-
-                                                    @if ($ext === 'pdf')
-                                                        <a href="{{ $fileUrl }}" target="_blank">Preview PDF</a>
-                                                    @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
-                                                        <a href="{{ $fileUrl }}" download>Download File</a>
-                                                    @else
-                                                        <a href="{{ $fileUrl }}" download>See File</a>
-                                                    @endif
+                                                @if ($doc->upload && is_array($doc->upload) && count($doc->upload) > 0)
+                                                    @foreach ($doc->upload as $index => $filePath)
+                                                        @php
+                                                            $id = Hashids::encode($doc->id_pending_task);
+                                                            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                                                            $fileUrl = config('app.url') . "documents/$id/view?file=" . urlencode(basename($filePath));
+                                                            $fileName = basename($filePath);
+                                                        @endphp
+                                                        <div class="mb-1">
+                                                            @if ($ext === 'pdf')
+                                                                <a href="{{ $fileUrl }}" target="_blank" class="text-primary">
+                                                                    <i class="fas fa-file-pdf"></i> {{ $fileName }}
+                                                                </a>
+                                                            @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
+                                                                <a href="{{ $fileUrl }}" download class="text-success">
+                                                                    <i class="fas fa-file-word"></i> {{ $fileName }}
+                                                                </a>
+                                                            @else
+                                                                <a href="{{ $fileUrl }}" download class="text-info">
+                                                                    <i class="fas fa-file"></i> {{ $fileName }}
+                                                                </a>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
                                                 @else
                                                     -
                                                 @endif
@@ -330,41 +340,54 @@
                         <input type="hidden" name="doc_id" id="modal_doc_id">
 
                         <div class="modal-header">
-                            <h5 class="modal-title" id="uploadModalLabel">Upload / Preview Document</h5>
+                            <h5 class="modal-title" id="uploadModalLabel">Upload Multiple Documents</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
                             <div class="form-group">
-                                <label for="document_file" class="d-block">Select file (accepted: PDF, DOCX,
-                                    Excel)</label>
+                                <label for="document_files" class="d-block">Select files (accepted: PDF, DOCX, Excel)</label>
                                 <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="document_file"
-                                        name="document_file"
-                                        accept=".pdf,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                    <input type="file" class="custom-file-input" id="document_files"
+                                        name="document_files[]" multiple
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                         aria-describedby="documentHelp">
-                                    <label class="custom-file-label" for="document_file">Choose file</label>
+                                    <label class="custom-file-label" for="document_files">Choose files</label>
                                 </div>
                                 <small id="documentHelp" class="form-text text-muted">
-                                    PDF files will be previewed in the modal. DOCX/Excel will be available to download after
-                                    upload.
+                                    You can select multiple files. Click on file names below to preview PDFs.
                                 </small>
                             </div>
 
-                            <div id="previewArea" style="min-height:200px;">
-                                <div id="noPreview" class="text-muted">No preview available.</div>
-                                <div id="pdfPreview" class="d-none">
-                                    <iframe id="pdfIframe" style="width:100%;height:480px;border:0;"></iframe>
+                            <!-- File List Section -->
+                            <div id="fileListSection" class="d-none mb-3">
+                                <h6 class="font-weight-bold">Selected Files:</h6>
+                                <div id="fileList" class="list-group">
+                                    <!-- Files will be listed here -->
                                 </div>
-                                <div id="otherPreview" class="d-none">
-                                    <p id="otherMsg"></p>
+                            </div>
+
+                            <!-- Preview Area -->
+                            <div id="previewSection" class="d-none">
+                                <h6 class="font-weight-bold mb-2">Preview:</h6>
+                                <div id="previewArea" style="min-height:200px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                                    <div id="noPreview" class="text-muted text-center py-5">
+                                        Select a PDF file to preview
+                                    </div>
+                                    <div id="pdfPreview" class="d-none">
+                                        <iframe id="pdfIframe" style="width:100%;height:480px;border:0;"></iframe>
+                                    </div>
+                                    <div id="otherPreview" class="d-none text-center py-5">
+                                        <i class="fas fa-file fa-3x text-muted mb-3"></i>
+                                        <p id="otherMsg" class="text-muted"></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Upload</button>
+                            <button type="submit" class="btn btn-primary" id="uploadBtn">Upload</button>
                         </div>
                     </form>
                 </div>
@@ -414,7 +437,7 @@
     <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
     <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
     
-    <script src="{{ config('app.url') . 'js/form-upload-file.js' }}"></script>
+    <script src="{{ config('app.url') . 'js/form-upload-multiple-files.js' }}"></script>
     <script src="{{ config('app.url') . 'js/user-task.js' }}"></script>
 @endpush
 

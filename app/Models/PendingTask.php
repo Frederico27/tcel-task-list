@@ -25,6 +25,10 @@ class PendingTask extends Model
         'approved_by'
     ];
 
+    protected $casts = [
+        'upload' => 'array', // Cast upload field as array
+    ];
+
     public function document()
     {
         return $this->belongsTo(Documents::class, 'id_documents', 'id_documents');

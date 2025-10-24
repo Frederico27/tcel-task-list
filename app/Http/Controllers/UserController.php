@@ -17,8 +17,8 @@ class UserController extends Controller
         $status = collect();
 
         try {
-            $nik = session('sso_user')['nik'];
-            // $nik = '4444';
+            // $nik = session('sso_user')['nik'];
+            $nik = '4444';
             // PIC is stored as JSON on the related `documents` table (Documents.pic)
             // PendingTask relation name is `document()` (singular) so use that
             $docs = PendingTask::with('document')
@@ -46,20 +46,32 @@ class UserController extends Controller
     {
         try {
             $request->validate([
-                'document_file' => 'required|file|mimes:pdf,doc,docx|max:20480', // max 20MB
+                'document_files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:20480', // max 20MB per file
             ]);
 
             $task = PendingTask::findOrFail($id);
 
-            $file = $request->file('document_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $uploadedFiles = [];
 
-            // Store in storage/app/uploads (not public)
-            $path = $file->storeAs('uploads', $filename, 'public');
+            // Get existing uploads if any
+            $existingUploads = is_array($task->upload) ? $task->upload : [];
 
+            if ($request->hasFile('document_files')) {
+                foreach ($request->file('document_files') as $file) {
+                    $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
 
-            // Save path in DB
-            $task->upload = $path;
+                    // Store in storage/app/public/uploads
+                    $path = $file->storeAs('uploads', $filename, 'public');
+
+                    $uploadedFiles[] = $path;
+                }
+            }
+
+            // Merge with existing uploads
+            $allUploads = array_merge($existingUploads, $uploadedFiles);
+
+            // Save paths array in DB
+            $task->upload = $allUploads;
             $task->status = 'waiting_approval';
             $task->save();
         } catch (Exception $e) {
@@ -67,8 +79,10 @@ class UserController extends Controller
                 'error' => $e->getMessage(),
                 'input' => $request->all()
             ]);
+
+            return redirect()->back()->with('error', 'Failed to upload documents. Please try again.');
         }
 
-        return redirect()->back()->with('success', 'Document uploaded successfully.');
+        return redirect()->back()->with('success', 'Documents uploaded successfully.');
     }
 }

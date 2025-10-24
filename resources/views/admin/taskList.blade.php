@@ -306,28 +306,38 @@
                                                                     <td>{{ $doc->type_document }}</td>
                                                                     <td>{{ $task->periode_date }}</td>
                                                                     <td>
-                                                                        @if ($task->upload)
-                                                                            @php
-                                                                                $ext = strtolower(
-                                                                                    pathinfo(
-                                                                                        $task->upload,
-                                                                                        PATHINFO_EXTENSION,
-                                                                                    ),
-                                                                                );
-                                                                                $id = Hashids::encode($task->id_pending_task);
-                                                                                $fileRoute = config('app.url') . "documents/$id/view";
-                                                                            @endphp
+                                                                        @if ($task->upload && is_array($task->upload) && count($task->upload) > 0)
+                                                                            @foreach ($task->upload as $index => $filePath)
+                                                                                @php
+                                                                                    $ext = strtolower(
+                                                                                        pathinfo(
+                                                                                            $filePath,
+                                                                                            PATHINFO_EXTENSION,
+                                                                                        ),
+                                                                                    );
+                                                                                    $id = Hashids::encode($task->id_pending_task);
+                                                                                    $fileName = basename($filePath);
+                                                                                    $fileRoute = config('app.url') . "documents/$id/view?file=" . urlencode($fileName);
+                                                                                @endphp
 
-                                                                            @if ($ext === 'pdf')
-                                                                                <a href="{{ $fileRoute }}"
-                                                                                    target="_blank">Preview PDF</a>
-                                                                            @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
-                                                                                <a href="{{ $fileRoute }}"
-                                                                                    download>Download File</a>
-                                                                            @else
-                                                                                <a href="{{ $fileRoute }}" download>See
-                                                                                    File</a>
-                                                                            @endif
+                                                                                <div class="mb-1">
+                                                                                    @if ($ext === 'pdf')
+                                                                                        <a href="{{ $fileRoute }}"
+                                                                                            target="_blank" class="text-primary">
+                                                                                            <i class="fas fa-file-pdf"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
+                                                                                        <a href="{{ $fileRoute }}"
+                                                                                            download class="text-success">
+                                                                                            <i class="fas fa-file-word"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @else
+                                                                                        <a href="{{ $fileRoute }}" download class="text-info">
+                                                                                            <i class="fas fa-file"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @endif
+                                                                                </div>
+                                                                            @endforeach
                                                                         @else
                                                                             -
                                                                         @endif
