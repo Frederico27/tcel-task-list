@@ -6,6 +6,7 @@ use App\Models\PendingTask;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -39,6 +40,101 @@ class UserController extends Controller
 
 
         return view('user.index', compact('docs', 'status'));
+    }
+
+    // Get existing files for a task
+    public function getTaskFiles($id)
+    {
+        try {
+            Log::info('Getting files for task', ['task_id' => $id]);
+
+            $task = PendingTask::findOrFail($id);
+
+            Log::info('Task found', [
+                'task_id' => $task->id_pending_task,
+                'upload' => $task->upload,
+                'upload_type' => gettype($task->upload)
+            ]);
+
+            $files = [];
+            if (is_array($task->upload) && count($task->upload) > 0) {
+                foreach ($task->upload as $index => $filePath) {
+                    $files[] = [
+                        'index' => $index,
+                        'path' => $filePath,
+                        'name' => basename($filePath),
+                        'url' => asset('storage/' . $filePath)
+                    ];
+                }
+            }
+
+            Log::info('Files prepared', ['files_count' => count($files), 'files' => $files]);
+
+            return response()->json([
+                'success' => true,
+                'files' => $files
+            ]);
+        } catch (Exception $e) {
+            Log::error('Failed to get task files', [
+                'error' => $e->getMessage(),
+                'task_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load files',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Remove a specific file from a task
+    public function removeTaskFile(Request $request, $id)
+    {
+        try {
+            $task = PendingTask::findOrFail($id);
+            $fileIndex = $request->input('file_index');
+
+            if (!is_array($task->upload)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No files to remove'
+                ], 400);
+            }
+
+            if (!isset($task->upload[$fileIndex])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found'
+                ], 404);
+            }
+
+            // Remove file from storage
+            $filePath = $task->upload[$fileIndex];
+            Storage::disk('public')->delete($filePath);
+
+            // Remove from array
+            $uploads = $task->upload;
+            unset($uploads[$fileIndex]);
+            $task->upload = array_values($uploads); // Re-index array
+            $task->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File removed successfully'
+            ]);
+        } catch (Exception $e) {
+            Log::error('Failed to remove file', [
+                'error' => $e->getMessage(),
+                'task_id' => $id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove file'
+            ], 500);
+        }
     }
 
     // upload document for a pending task

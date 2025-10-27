@@ -29,6 +29,8 @@ Route::middleware(['sso.auth'])->group(function () {
     Route::middleware(['user'])->group(function () {
         Route::get('/user', [App\Http\Controllers\UserController::class, 'index'])->name('user.index');
         Route::post('/user/{id}/upload', [App\Http\Controllers\UserController::class, 'uploadDocument'])->name('user.uploadDocument');
+        Route::get('/user/{id}/files', [App\Http\Controllers\UserController::class, 'getTaskFiles'])->name('user.getTaskFiles');
+        Route::delete('/user/{id}/file', [App\Http\Controllers\UserController::class, 'removeTaskFile'])->name('user.removeTaskFile');
     });
 
     //Added routes for superadmin
@@ -36,6 +38,6 @@ Route::middleware(['sso.auth'])->group(function () {
     Route::get('/documents/{id}/view', [DocumentController::class, 'view'])->name('docs.view');
 
 
-    // API route to fetch employees
+    // API to test route to fetch employees
     Route::get('/api/employees', [App\Http\Controllers\AdminController::class, 'apiEmployees'])->name('api.employees');
 });

@@ -1,7 +1,10 @@
 (function () {
-    // Store temporary file objects
+    // Store temporary file objects (new uploads)
     let selectedFiles = [];
+    // Store existing files from server
+    let existingFiles = [];
     let currentPreviewFile = null;
+    let currentTaskId = null;
 
     // Helper to check extension
     function extensionOf(name) {
@@ -17,13 +20,87 @@
         return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     }
 
-    // Render the file list
+    // Fetch existing files from server
+    async function loadExistingFiles(taskId) {
+        try {
+            console.log('Loading files for task ID:', taskId);
+            const url = `${window.location.origin}/user/${taskId}/files`;
+            console.log('Fetching from URL:', url);
+            
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error('Failed to load files');
+            }
+            
+            const data = await response.json();
+            console.log('Received data:', data);
+            
+            if (data.success && data.files) {
+                existingFiles = data.files;
+                console.log('Existing files loaded:', existingFiles);
+                renderFileList();
+            }
+        } catch (error) {
+            console.error('Error loading existing files:', error);
+        }
+    }
+
+    // Remove existing file from server
+    async function removeExistingFile(fileIndex) {
+        if (!confirm('Are you sure you want to delete this file?')) {
+            return;
+        }
+        
+        try {
+            const url = `${window.location.origin}/user/${currentTaskId}/file`;
+            console.log('Deleting file at index:', fileIndex, 'from URL:', url);
+            
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    file_index: fileIndex
+                })
+            });
+            
+            const data = await response.json();
+            console.log('Delete response:', data);
+            
+            if (data.success) {
+                // Remove from existingFiles array
+                existingFiles = existingFiles.filter(f => f.index !== fileIndex);
+                renderFileList();
+            } else {
+                alert(data.message || 'Failed to delete file');
+            }
+        } catch (error) {
+            console.error('Error removing file:', error);
+            alert('Failed to delete file. Please try again.');
+        }
+    }
+
+    // Render the file list (both existing and new files)
     function renderFileList() {
         const fileListContainer = document.getElementById('fileList');
         const fileListSection = document.getElementById('fileListSection');
         const previewSection = document.getElementById('previewSection');
         
-        if (selectedFiles.length === 0) {
+        const totalFiles = existingFiles.length + selectedFiles.length;
+        
+        if (totalFiles === 0) {
             fileListSection.classList.add('d-none');
             previewSection.classList.add('d-none');
             return;
@@ -34,6 +111,62 @@
         
         fileListContainer.innerHTML = '';
 
+        // Render existing files first
+        existingFiles.forEach((fileData) => {
+            const ext = extensionOf(fileData.name);
+            let iconClass = 'fas fa-file';
+            let textColor = 'text-secondary';
+
+            if (ext === 'pdf') {
+                iconClass = 'fas fa-file-pdf';
+                textColor = 'text-danger';
+            } else if (['doc', 'docx'].includes(ext)) {
+                iconClass = 'fas fa-file-word';
+                textColor = 'text-primary';
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                iconClass = 'fas fa-file-excel';
+                textColor = 'text-success';
+            }
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'list-group-item d-flex justify-content-between align-items-center';
+            itemDiv.innerHTML = `
+                <div class="d-flex align-items-center flex-grow-1" style="cursor: ${ext === 'pdf' ? 'pointer' : 'default'};">
+                    <i class="${iconClass} ${textColor} mr-2"></i>
+                    <div>
+                        <div class="font-weight-bold">${fileData.name}</div>
+                        <small class="text-muted badge badge-info">Existing file</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger remove-existing-file-btn" data-index="${fileData.index}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+
+            // Add click event to preview PDF files
+            if (ext === 'pdf') {
+                const clickableArea = itemDiv.querySelector('.d-flex.align-items-center');
+                clickableArea.addEventListener('click', function() {
+                    previewExistingFile(fileData);
+                    // Highlight selected item
+                    document.querySelectorAll('#fileList .list-group-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    itemDiv.classList.add('active');
+                });
+            }
+
+            // Add remove button event
+            const removeBtn = itemDiv.querySelector('.remove-existing-file-btn');
+            removeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                removeExistingFile(fileData.index);
+            });
+
+            fileListContainer.appendChild(itemDiv);
+        });
+
+        // Render new selected files
         selectedFiles.forEach((fileObj, index) => {
             const file = fileObj.file;
             const ext = extensionOf(file.name);
@@ -58,7 +191,7 @@
                     <i class="${iconClass} ${textColor} mr-2"></i>
                     <div>
                         <div class="font-weight-bold">${file.name}</div>
-                        <small class="text-muted">${formatFileSize(file.size)}</small>
+                        <small class="text-muted">${formatFileSize(file.size)} <span class="badge badge-success">New</span></small>
                     </div>
                 </div>
                 <button type="button" class="btn btn-sm btn-danger remove-file-btn" data-index="${index}">
@@ -91,6 +224,35 @@
 
         // Update custom file label
         updateFileInputLabel();
+    }
+
+    // Preview existing file from server
+    function previewExistingFile(fileData) {
+        const ext = extensionOf(fileData.name);
+
+        const noPreview = document.getElementById('noPreview');
+        const pdfPreview = document.getElementById('pdfPreview');
+        const otherPreview = document.getElementById('otherPreview');
+        const pdfIframe = document.getElementById('pdfIframe');
+
+        // Reset preview area
+        noPreview.classList.add('d-none');
+        pdfPreview.classList.add('d-none');
+        otherPreview.classList.add('d-none');
+
+        if (ext === 'pdf') {
+            pdfIframe.src = '';  // Clear first to force reload
+            setTimeout(() => {
+                pdfIframe.src = fileData.url;
+            }, 10);
+            
+            pdfPreview.classList.remove('d-none');
+            currentPreviewFile = fileData.url;
+        } else {
+            const otherMsg = document.getElementById('otherMsg');
+            otherMsg.textContent = `Preview not available for .${ext} files.`;
+            otherPreview.classList.remove('d-none');
+        }
     }
 
     // Preview file (for PDFs)
@@ -167,12 +329,14 @@
     // Update file input label
     function updateFileInputLabel() {
         const fileLabel = document.querySelector('label[for="document_files"]');
+        const totalFiles = existingFiles.length + selectedFiles.length;
+        
         if (selectedFiles.length === 0) {
             fileLabel.textContent = 'Choose files';
         } else if (selectedFiles.length === 1) {
-            fileLabel.textContent = '1 file selected';
+            fileLabel.textContent = '1 new file selected';
         } else {
-            fileLabel.textContent = `${selectedFiles.length} files selected`;
+            fileLabel.textContent = `${selectedFiles.length} new files selected`;
         }
     }
 
@@ -181,15 +345,24 @@
         const btn = e.target.closest('.upload-btn');
         if (!btn) return;
         
+        console.log('Upload button clicked');
         const docId = btn.getAttribute('data-id');
+        console.log('Document ID:', docId);
+        
+        currentTaskId = docId;
         document.getElementById('modal_doc_id').value = docId;
         
         // Reset everything
         selectedFiles = [];
+        existingFiles = [];
         currentPreviewFile = null;
         document.getElementById('document_files').value = '';
-        renderFileList();
         resetPreview();
+        
+        console.log('Opening modal and loading files...');
+        
+        // Load existing files from server
+        loadExistingFiles(docId);
         
         $('#uploadModal').modal('show');
     });
@@ -234,9 +407,18 @@
 
     // Before form submission, create a new FormData with selected files
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        if (selectedFiles.length === 0) {
+        // Check if there are any files (new or existing)
+        if (selectedFiles.length === 0 && existingFiles.length === 0) {
             e.preventDefault();
             alert('Please select at least one file to upload.');
+            return false;
+        }
+
+        // If only existing files and no new files, just close modal and reload
+        if (selectedFiles.length === 0) {
+            e.preventDefault();
+            $('#uploadModal').modal('hide');
+            window.location.reload();
             return false;
         }
 

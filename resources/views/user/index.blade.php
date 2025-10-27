@@ -245,37 +245,63 @@
                                             <td>{{ $doc->periode_date }}</td>
                                             <td>
                                                 @if ($doc->upload && is_array($doc->upload) && count($doc->upload) > 0)
-                                                    @foreach ($doc->upload as $index => $filePath)
-                                                        @php
-                                                            $id = Hashids::encode($doc->id_pending_task);
-                                                            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-                                                            $fileUrl = config('app.url') . "documents/$id/view?file=" . urlencode(basename($filePath));
-                                                            $fileName = basename($filePath);
-                                                        @endphp
-                                                        <div class="mb-1">
-                                                            @if ($ext === 'pdf')
-                                                                <a href="{{ $fileUrl }}" target="_blank" class="text-danger">
-                                                                    <i class="fas fa-file-pdf"></i> {{ $fileName }}
-                                                                </a>
-                                                            @elseif (in_array($ext, ['doc', 'docx']))
-                                                                <a href="{{ $fileUrl }}" download class="text-primary">
-                                                                    <i class="fas fa-file-word"></i> {{ $fileName }}
-                                                                </a>
-                                                            @elseif (in_array($ext, ['xls', 'xlsx']))
-                                                                <a href="{{ $fileUrl }}" download class="text-success">
-                                                                    <i class="fas fa-file-excel"></i> {{ $fileName }}
-                                                                </a>
-                                                            @else
-                                                                <a href="{{ $fileUrl }}" download class="text-info">
-                                                                    <i class="fas fa-file"></i> {{ $fileName }}
-                                                                </a>
-                                                            @endif
-                                                        </div>
-                                                    @endforeach
+                                                    <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                                        @foreach ($doc->upload as $index => $filePath)
+                                                            @php
+                                                                $id = Hashids::encode($doc->id_pending_task);
+                                                                $ext = strtolower(
+                                                                    pathinfo($filePath, PATHINFO_EXTENSION),
+                                                                );
+                                                                $fileUrl =
+                                                                    config('app.url') .
+                                                                    "documents/$id/view?file=" .
+                                                                    urlencode(basename($filePath));
+                                                                $fileName = basename($filePath);
+                                                            @endphp
+                                                            <div class="text-center" style="min-width: 40px;">
+                                                                @if ($ext === 'pdf')
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="text-danger"
+                                                                        style="text-decoration: none; transition: opacity 0.2s;"
+                                                                        onmouseover="this.style.opacity='0.7'"
+                                                                        onmouseout="this.style.opacity='1'">
+                                                                        <i class="fas fa-file-pdf fa-2x"
+                                                                            title="{{ $fileName }}"></i>
+                                                                    </a>
+                                                                @elseif (in_array($ext, ['doc', 'docx']))
+                                                                    <a href="{{ $fileUrl }}" download
+                                                                        class="text-primary"
+                                                                        style="text-decoration: none; transition: opacity 0.2s;"
+                                                                        onmouseover="this.style.opacity='0.7'"
+                                                                        onmouseout="this.style.opacity='1'">
+                                                                        <i class="fas fa-file-word fa-2x"
+                                                                            title="{{ $fileName }}"></i>
+                                                                    </a>
+                                                                @elseif (in_array($ext, ['xls', 'xlsx']))
+                                                                    <a href="{{ $fileUrl }}" download
+                                                                        class="text-success"
+                                                                        style="text-decoration: none; transition: opacity 0.2s;"
+                                                                        onmouseover="this.style.opacity='0.7'"
+                                                                        onmouseout="this.style.opacity='1'">
+                                                                        <i class="fas fa-file-excel fa-2x"
+                                                                            title="{{ $fileName }}"></i>
+                                                                    </a>
+                                                                @else
+                                                                    <a href="{{ $fileUrl }}" download
+                                                                        class="text-info"
+                                                                        style="text-decoration: none; transition: opacity 0.2s;"
+                                                                        onmouseover="this.style.opacity='0.7'"
+                                                                        onmouseout="this.style.opacity='1'">
+                                                                        <i class="fas fa-file fa-2x"
+                                                                            title="{{ $fileName }}"></i>
+                                                                    </a>
+                                                                @endif
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
                                                 @else
-                                                    -
+                                                    <span class="text-muted">-</span>
                                                 @endif
-
                                             </td>
 
 
@@ -296,28 +322,28 @@
                                                     <span class="badge badge-secondary">{{ $doc->status }}</span>
                                                 @endif
                                             </td>
+
                                             <td>{{ $doc->approved_by ?? '-' }}</td>
-                                            @if ($doc->status == 'waiting_document')
-                                                <td class="text-center">
+                                            <td class="text-center">
+                                                @if ($doc->status == 'waiting_document')
                                                     <button type="button" class="btn btn-sm btn-success upload-btn"
-                                                        data-id="{{ $doc->id_pending_task }}"
-                                                        data-file="{{ $doc->upload ? secure_asset('storage/' . $doc->upload) : '' }}">
+                                                        data-id="{{ $doc->id_pending_task }}">
                                                         Upload / Preview
                                                     </button>
-                                                </td>
-                                            @elseif ($doc->status == 'rejected')
-                                                <td class="text-center">
+                                                @elseif ($doc->status == 'rejected')
                                                     <button type="button" class="btn btn-sm btn-success upload-btn"
-                                                        data-id="{{ $doc->id_pending_task }}"
-                                                        data-file="{{ $doc->upload ? secure_asset('storage/' . $doc->upload) : '' }}">
+                                                        data-id="{{ $doc->id_pending_task }}">
                                                         Revise & Upload again
                                                     </button>
-                                                </td>
-                                            @else
-                                                <td class="text-center">
-                                                    <p class="text-muted">No actions available</p>
-                                                </td>
-                                            @endif
+                                                @elseif($doc->status == 'waiting_approval')
+                                                    <button type="button" class="btn btn-sm btn-primary upload-btn"
+                                                        data-id="{{ $doc->id_pending_task }}">
+                                                        Manage Files
+                                                    </button>
+                                                @else
+                                                    <span class="text-muted">No actions available</span>
+                                                @endif
+                                            </td>
 
                                         </tr>
                                     @endforeach
@@ -351,7 +377,8 @@
                         </div>
                         <div class="modal-body">
                             <div class="form-group">
-                                <label for="document_files" class="d-block">Select files (accepted: PDF, DOCX, Excel)</label>
+                                <label for="document_files" class="d-block">Select files (accepted: PDF, DOCX,
+                                    Excel)</label>
                                 <div class="custom-file">
                                     <input type="file" class="custom-file-input" id="document_files"
                                         name="document_files[]" multiple
@@ -375,7 +402,8 @@
                             <!-- Preview Area -->
                             <div id="previewSection" class="d-none">
                                 <h6 class="font-weight-bold mb-2">Preview:</h6>
-                                <div id="previewArea" style="min-height:200px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                                <div id="previewArea"
+                                    style="min-height:200px; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
                                     <div id="noPreview" class="text-muted text-center py-5">
                                         Select a PDF file to preview
                                     </div>
@@ -440,9 +468,7 @@
     <!-- DataTables JavaScript -->
     <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
     <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
-    
+
     <script src="{{ config('app.url') . 'js/form-upload-multiple-files.js' }}"></script>
     <script src="{{ config('app.url') . 'js/user-task.js' }}"></script>
 @endpush
-
-
