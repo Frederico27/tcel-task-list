@@ -211,7 +211,7 @@
             <div class="container-fluid">
 
                 <!-- Display success/error messages -->
-                @if(session('success'))
+                @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -219,8 +219,8 @@
                         </button>
                     </div>
                 @endif
-                
-                @if(session('error'))
+
+                @if (session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         {{ session('error') }}
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -256,8 +256,8 @@
                                     @foreach ($docs as $doc)
                                         <tr>
                                             <td>{{ $doc->type_document }}</td>
-                                            <td>{{ $doc->pic }}</td>
-                                            <td>{{ $doc->approval }}</td>
+                                            <td><span class="badge badge-secondary">{{ $doc->pic }}</span></td>
+                                            <td><span class="badge badge-secondary">{{ $doc->approval }}</span></td>
                                             <td>{{ $doc->periods['0']['period_type'] }}</td>
                                             <td>{{ $doc->periods['0']['period_value'] }}</td>
                                             <td>
@@ -275,15 +275,17 @@
                                                     data-creating_task='{{ $doc->creating_task }}'>
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ config('app.url') . 'admin/generate-task/' . $doc->id_documents }}"
+                                                <form
+                                                    action="{{ config('app.url') . 'admin/generate-task/' . $doc->id_documents }}"
                                                     method="POST" style="display:inline;">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-success" title="Generate Task"
+                                                    <button type="submit" class="btn btn-sm btn-success"
+                                                        title="Generate Task"
                                                         onclick="return confirm('Are you sure you want to generate a new task for this document?')">
                                                         <i class="fas fa-file-alt"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ config('app.url'). "admin/$doc->id_documents" }}"
+                                                <form action="{{ config('app.url') . "admin/$doc->id_documents" }}"
                                                     method="POST" style="display:inline;">
                                                     @csrf
                                                     @method('DELETE')
@@ -580,20 +582,25 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    
+
     <!-- DataTables JavaScript -->
     <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/jquery.dataTables.min.js' }}"></script>
     <script src="{{ config('app.url') . 'sb-admin/vendor/datatables/dataTables.bootstrap4.min.js' }}"></script>
-    
+
     <script src="{{ config('app.url') . 'js/select2code.js' }}"></script>
-    
+
     <script>
         // Initialize DataTable for admin index
         $(document).ready(function() {
             $('#dataTable').DataTable({
                 pageLength: 10,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                order: [[0, 'asc']], // Sort by Type Documents column
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "All"]
+                ],
+                order: [
+                    [0, 'asc']
+                ], // Sort by Type Documents column
                 language: {
                     search: "Search:",
                     lengthMenu: "Show _MENU_ entries",

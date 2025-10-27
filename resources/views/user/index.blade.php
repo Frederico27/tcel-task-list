@@ -254,12 +254,16 @@
                                                         @endphp
                                                         <div class="mb-1">
                                                             @if ($ext === 'pdf')
-                                                                <a href="{{ $fileUrl }}" target="_blank" class="text-primary">
+                                                                <a href="{{ $fileUrl }}" target="_blank" class="text-danger">
                                                                     <i class="fas fa-file-pdf"></i> {{ $fileName }}
                                                                 </a>
-                                                            @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
-                                                                <a href="{{ $fileUrl }}" download class="text-success">
+                                                            @elseif (in_array($ext, ['doc', 'docx']))
+                                                                <a href="{{ $fileUrl }}" download class="text-primary">
                                                                     <i class="fas fa-file-word"></i> {{ $fileName }}
+                                                                </a>
+                                                            @elseif (in_array($ext, ['xls', 'xlsx']))
+                                                                <a href="{{ $fileUrl }}" download class="text-success">
+                                                                    <i class="fas fa-file-excel"></i> {{ $fileName }}
                                                                 </a>
                                                             @else
                                                                 <a href="{{ $fileUrl }}" download class="text-info">

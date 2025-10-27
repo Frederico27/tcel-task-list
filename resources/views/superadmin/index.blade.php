@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'SuperAdmin Dashboard')
+@section('title', 'Superadmin Dashboard')
 
 @section('content')
 
@@ -210,7 +210,7 @@
                     <div class="card-body">
                         {{-- Bulk approve form (will be populated with selected ids on submit) --}}
                         {{-- Search form --}}
-                        <form method="GET" action="{{ config('app.url') . 'admin/task' }}" class="form-inline mb-3">
+                        <form method="GET" action="{{ config('app.url') . 'superadmin' }}" class="form-inline mb-3">
                             <div class="input-group">
                                 <input name="q" type="text" class="form-control" placeholder="Search documents..."
                                     value="{{ request('q') }}">
@@ -219,7 +219,7 @@
                                 </div>
                             </div>
                         </form>
-
+                
                         <div class="table-responsive">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
                                 style="color: black">
@@ -236,7 +236,7 @@
                                     @foreach ($docs as $doc)
                                         <tr>
                                             <td>{{ $doc->type_document }}</td>
-                                            <td>{{ $doc->pic }}</td>
+                                             <td><span class="badge badge-secondary">{{ $doc->pic }}</span></td>
                                             <td>
                                                 @if (strtolower($doc->approval) == 'approved')
                                                     <span class="badge badge-success">Approved</span>
@@ -275,6 +275,7 @@
                                                                 <th>Upload</th>
                                                                 <th>Status</th>
                                                                 <th>Approved By</th>
+                                                                <th class="text-center">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -283,28 +284,43 @@
                                                                     <td>{{ $doc->type_document }}</td>
                                                                     <td>{{ $task->periode_date }}</td>
                                                                     <td>
-                                                                        @if ($task->upload)
-                                                                            @php
-                                                                                $ext = strtolower(
-                                                                                    pathinfo(
-                                                                                        $task->upload,
-                                                                                        PATHINFO_EXTENSION,
-                                                                                    ),
-                                                                                );
-                                                                                $id = Hashids::encode($task->id_pending_task);
-                                                                                $fileRoute = config('app.url') . "documents/$id/view";
-                                                                            @endphp
+                                                                        @if ($task->upload && is_array($task->upload) && count($task->upload) > 0)
+                                                                            @foreach ($task->upload as $index => $filePath)
+                                                                                @php
+                                                                                    $ext = strtolower(
+                                                                                        pathinfo(
+                                                                                            $filePath,
+                                                                                            PATHINFO_EXTENSION,
+                                                                                        ),
+                                                                                    );
+                                                                                    $id = Hashids::encode($task->id_pending_task);
+                                                                                    $fileName = basename($filePath);
+                                                                                    $fileRoute = config('app.url') . "documents/$id/view?file=" . urlencode($fileName);
+                                                                                @endphp
 
-                                                                            @if ($ext === 'pdf')
-                                                                                <a href="{{ $fileRoute }}"
-                                                                                    target="_blank">Preview PDF</a>
-                                                                            @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
-                                                                                <a href="{{ $fileRoute }}"
-                                                                                    download>Download File</a>
-                                                                            @else
-                                                                                <a href="{{ $fileRoute }}" download>See
-                                                                                    File</a>
-                                                                            @endif
+                                                                                <div class="mb-1">
+                                                                                    @if ($ext === 'pdf')
+                                                                                        <a href="{{ $fileRoute }}"
+                                                                                            target="_blank" class="text-danger">
+                                                                                            <i class="fas fa-file-pdf"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @elseif (in_array($ext, ['doc', 'docx']))
+                                                                                        <a href="{{ $fileRoute }}"
+                                                                                            download class="text-primary">
+                                                                                            <i class="fas fa-file-word"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @elseif (in_array($ext, ['xls', 'xlsx']))
+                                                                                        <a href="{{ $fileRoute }}"
+                                                                                            download class="text-success">
+                                                                                            <i class="fas fa-file-excel"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @else
+                                                                                        <a href="{{ $fileRoute }}" download class="text-info">
+                                                                                            <i class="fas fa-file"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @endif
+                                                                                </div>
+                                                                            @endforeach
                                                                         @else
                                                                             -
                                                                         @endif
@@ -334,6 +350,17 @@
                                                                     </td>
                                                                     <td class="text-center task-approved-by">
                                                                         {{ $task->approved_by ?? '-' }}</td>
+                                                                
+                                                                        <td class="text-center">
+                                                                            <p class="text-muted d-inline-block mr-2">No
+                                                                                actions available</p>
+                                                                            {{-- Toggle child row button when no other actions --}}
+                                                                            {{-- <button type="button"
+                                                                                class="btn btn-sm btn-secondary toggle-child float-right ml-2"
+                                                                                data-child="#child-row-{{ $loop->index }}"
+                                                                                aria-expanded="false">+
+                                                                            </button> --}}
+                                                                        </td>
                                                                 </tr>
                                                             @endforeach
 
@@ -419,6 +446,7 @@
         <script src="{{ config('app.url') . 'js/admin-task.js' }}"></script>
     @endpush
 @endsection
+
 
 @push('scripts')
     <!-- View-only Rejection Reason Modal -->

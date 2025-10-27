@@ -245,7 +245,7 @@
                                     @foreach ($docs as $doc)
                                         <tr>
                                             <td>{{ $doc->type_document }}</td>
-                                            <td>{{ $doc->pic }}</td>
+                                            <td><span class="badge badge-secondary">{{ $doc->pic }}</span></td>
                                             <td>
                                                 @if (strtolower($doc->approval) == 'approved')
                                                     <span class="badge badge-success">Approved</span>
@@ -323,13 +323,18 @@
                                                                                 <div class="mb-1">
                                                                                     @if ($ext === 'pdf')
                                                                                         <a href="{{ $fileRoute }}"
-                                                                                            target="_blank" class="text-primary">
+                                                                                            target="_blank" class="text-danger">
                                                                                             <i class="fas fa-file-pdf"></i> {{ $fileName }}
                                                                                         </a>
-                                                                                    @elseif (in_array($ext, ['doc', 'docx', 'xls', 'xlsx']))
+                                                                                    @elseif (in_array($ext, ['doc', 'docx']))
+                                                                                        <a href="{{ $fileRoute }}"
+                                                                                            download class="text-primary">
+                                                                                            <i class="fas fa-file-word"></i> {{ $fileName }}
+                                                                                        </a>
+                                                                                    @elseif (in_array($ext, ['xls', 'xlsx']))
                                                                                         <a href="{{ $fileRoute }}"
                                                                                             download class="text-success">
-                                                                                            <i class="fas fa-file-word"></i> {{ $fileName }}
+                                                                                            <i class="fas fa-file-excel"></i> {{ $fileName }}
                                                                                         </a>
                                                                                     @else
                                                                                         <a href="{{ $fileRoute }}" download class="text-info">

@@ -46,7 +46,7 @@ class UserController extends Controller
     {
         try {
             $request->validate([
-                'document_files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:20480', // max 20MB per file
+                'document_files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:50480', // max 50MB per file
             ]);
 
             $task = PendingTask::findOrFail($id);
